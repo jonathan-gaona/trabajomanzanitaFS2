@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "nombre": "Juan Pérez",
+    "correo": "juan@duoc.cl",
+    "password": "1234"
+  },
+  {
+    "id": 2,
+    "nombre": "Ana Profesor",
+    "correo": "ana@profesor.duoc.cl",
+    "password": "abcd"
+  },
+  {
+    "id": 3,
+    "nombre": "Carlos Cliente",
+    "correo": "carlos@gmail.com",
+    "password": "password123"
+  },
+  {
+    "id": 4,
+    "nombre": "Jhonfran Pardo",
+    "correo": "jhon@profesor.duoc.cl",
+    "password": "123456"
+  }
+]

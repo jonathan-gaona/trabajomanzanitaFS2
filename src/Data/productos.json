@@ -1,0 +1,16 @@
+[
+  { "id": 1, "nombre": "Kisaragi Saya",
+  "precio": 20000, "imagen": "/img/bloodc.jpg", 
+  "descripcion": "Blood c Kisaragi Saya" },
+  { "id": 2, "nombre": "Kotonoha Katsura",
+    "precio": 25000,
+    "imagen": "/img/kotonoha.jpg",
+    "descripcion": "School days Kotonoha Katsura" },
+  { "id": 3, "nombre": "Junko Enoshima",
+    "precio": 30000,
+    "imagen": "/img/junko1.jpg", 
+    "descripcion": "Danganronpa Junko Enoshima" },
+  { "id": 4, "nombre": "Fluttershy", "precio": 20000, "imagen": "/img/fluttershy1.jpg", "descripcion": "My little pony Fluttershy" },
+  { "id": 5, "nombre": "Kanade Tachibana", "precio": 20000, "imagen": "/img/angel_beats.png", "descripcion": "Angel Beats Kanade Tachibana" },
+  { "id": 6, "nombre": "Yuno Gasai", "precio": 30000, "imagen": "/img/yunogasai1.png", "descripcion": "Mirai Nikki Yuno Gasai" }
+]
