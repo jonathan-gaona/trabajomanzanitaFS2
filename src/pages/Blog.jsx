@@ -1,116 +1,89 @@
 import '../index.css'
 
 function Blog() {
-    
+    // Datos simulados de artículos de blog
+    const posts = [
+        {
+            id: 1,
+            titulo: "La vitrina de Carlos: De una figura a una colección épica",
+            fecha: "12 de Octubre, 2026",
+            categoria: "Comunidad",
+            resumen: "Descubre cómo Carlos empezó con una pequeña figura de Demon Slayer y logró construir un santuario otaku en su hogar...",
+            imagen: "/img/polkadotsblue.jpg"
+        },
+        {
+            id: 2,
+            titulo: "Guía definitiva: ¿Cómo identificar figuras 100% originales?",
+            fecha: "05 de Octubre, 2026",
+            categoria: "Guías",
+            resumen: "Aprende a diferenciar los sellos de autenticidad de Good Smile Company y Bandai para evitar caer en réplicas chinas...",
+            imagen: "/img/polkadotsblue.jpg"
+        },
+        {
+            id: 3,
+            titulo: "Cuidados esenciales: Limpieza de figuras de PVC",
+            fecha: "28 de Septiembre, 2026",
+            categoria: "Tips",
+            resumen: "Te enseñamos los mejores trucos y productos para quitar el polvo y mantener la pintura intacta con el paso de los años...",
+            imagen: "/img/polkadotsblue.jpg"
+        }
+    ];
+
     return (
-        /* AQUÍ ENVOLVEMOS TODO CON EL DIV DEL FONDO */
         <div style={{
-            backgroundImage: "url('/img/polkadots1.jpg')", /* <--- ¡PON AQUÍ LA RUTA DE TU IMAGEN! */
+            backgroundImage: "url('/img/polkadots1.jpg')",
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            backgroundAttachment: 'fixed', /* Hace que el fondo se quede quieto al hacer scroll */
-            minHeight: '100vh', /* Asegura que cubra toda la altura de la pantalla */
+            backgroundAttachment: 'fixed',
+            minHeight: '100vh',
             width: '100%'
         }}>
             <div className="container py-5">
                 <div className="row justify-content-center">
                     <div className="col-12 col-md-10 col-lg-8">
                         
-                        {/* Contenedor principal estilizado (Cambié text-light por text-dark para que se lea en el fondo amarillo) */}
                         <div className="card text-dark shadow-lg border-secondary p-4 p-md-5" style={{ backgroundColor: '#fff9c4' }}>
                             
-                            <h1>
-                                一୧ ‧₊˚⸝⸝.ᐟ⋆Blog & Community AnimeWord
+                            <h1 className="text-center mb-3">
+                                一୧ ‧₊˚⸝⸝.ᐟ⋆ Blog & Noticias AnimeWord
                             </h1>
-                            <p>
-                                Conoce las experiencias de nuestros coleccionistas y resuelve tus dudas principales en un solo lugar.
+                            <p className="text-center mb-4">
+                                Explora nuestros últimos artículos, guías de coleccionismo y novedades del mundo otaku.
                             </p>
 
-                            {/* Botones de navegación interna (Anclajes rápidos) */}
-                            <div className="d-flex justify-content-center gap-3 mb-5">
-                                <a href="#casos-exito" className="btn btn-sm px-4 fw-bold text-dark border-0 shadow-sm"
-                                style={{ backgroundColor: '#fce4ec' }}>
-                                    Casos de Éxito
-                                </a>
-                                <a href="#preguntas-frecuentes" className="btn btn-sm px-4 fw-bold text-dark border-0 shadow-sm"
-                                 style={{ backgroundColor: '#fce4ec' }}>
-                                    Preguntas Frecuentes
-                                </a>
-                            </div>
-
-                            {/* SECCIÓN 1: Casos de Éxito */}
-                            <section id="casos-exito" className="mb-5 pt-3">
-                                <h3>
-                                    Casos de Éxito: Historias de nuestros Coleccionistas
-                                </h3>
-
-                                {/* CUADRO 1 CON IMAGEN DE FONDO */}
-                                <div 
-                                    className="card text-dark border-secondary p-4 mb-3"
-                                    style={{
-                                        backgroundImage: "linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('/img/polkadotsblue.jpg')",
-                                        backgroundSize: 'cover',
-                                        backgroundPosition: 'center'
-                                    }}
-                                >
-                                    <h5 className="fw-bold">"La vitrina de Carlos: De una figura a una colección épica"</h5>
-                                    <p className="fw-semibold">Cliente desde 2024</p>
-                                    <p>
-                                        Carlos nos contactó buscando su primera figura original de *Demon Slayer*. Hoy, un par de años y varias adquisiciones después, su estantería es un santuario completamente equipado. Nos alegra haberlo acompañado en cada preventa y entrega asegurando que cada caja llegara en estado de colección.
-                                    </p>
-                                </div>
-
-                                {/* CUADRO 2 CON IMAGEN DE FONDO */}
-                                <div 
-                                    className="card text-dark border-secondary p-4"
-                                    style={{
-                                        backgroundImage: "linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('/img/polkadotsblue.jpg')",
-                                        backgroundSize: 'cover',
-                                        backgroundPosition: 'center'
-                                    }}
-                                >
-                                    <h5 className="fw-bold">"El rincón otaku de Valentina y su set de coleccionista"</h5>
-                                    <p className="fw-semibold">Cliente desde 2025</p>
-                                    <p>
-                                        Valentina necesitaba un regalo especial y terminó enamorándose de nuestras ediciones limitadas. Gracias a nuestra asesoría personalizada, logró conseguir piezas exclusivas de importación que creía imposibles de encontrar en Chile, con seguimiento en vivo de su envío.
-                                    </p>
-                                </div>
-                            </section>
-
-                           {/* SECCIÓN 2: Preguntas Frecuentes (FAQ) */}
-                            <section id="preguntas-frecuentes" className="pt-3">
-                                <h3>
-                                    (˶˃𐃷˂˶) Preguntas Frecuentes
-                                </h3>
-
-                                <div className="mb-4">
-                                    <h5 className="fw-bold">¿Las figuras y productos son 100% originales?</h5>
-                                    <p className="text-dark">
-                                        Absolutamente. Solo trabajamos con marcas y distribuidores oficiales de Japón (Good Smile Company, Kotobukiya, Bandai, entre otros). Cero imitaciones chinas o piratas.
-                                    </p>
-                                </div>
-
-                                <div className="mb-4">
-                                    <h5 className="fw-bold">¿Cómo se realizan los envíos a regiones?</h5>
-                                    <p className="text-dark">
-                                        Empacamos cada figura con múltiples capas de burbuja y cajas reinforced para evitar cualquier daño en las esquinas durante el transporte a lo largo de todo Chile.
-                                    </p>
-                                </div>
-
-                                <div className="mb-4">
-                                    <h5 className="fw-bold">¿Qué dominios aceptan para registrarse?</h5>
-                                    <p className="text-dark">
-                                        Por motivos de seguridad y validación interna de nuestro proyecto, permitimos registros utilizando correos institucionales de Duoc (`@duoc.cl`, `@profesor.duoc.cl`) y cuentas personales de `@gmail.com`.
-                                    </p>
-                                </div>
-                            </section>
-
-                            {/* Botón para volver arriba */}
-                            <div className="mt-4 pt-3 border-top border-secondary text-center">
-                                <a href="#" className="text-decoration-none small fw-bold"
-                                style={{ color: '#000000' }}>
-                                    ↑ Volver arriba
-                                </a>
+                            {/* GRILLA DE ARTÍCULOS DEL BLOG */}
+                            <div className="row g-4">
+                                {posts.map((post) => (
+                                    <div className="col-12" key={post.id}>
+                                        <div 
+                                            className="card text-dark border-secondary p-4 shadow-sm"
+                                            style={{
+                                                backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url('${post.imagen}')`,
+                                                backgroundSize: 'cover',
+                                                backgroundPosition: 'center'
+                                            }}
+                                        >
+                                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                                <span className="badge bg-danger">{post.categoria}</span>
+                                                <small className="text-muted">{post.fecha}</small>
+                                            </div>
+                                            
+                                            <h4 className="fw-bold">{post.titulo}</h4>
+                                            <p className="mb-3">{post.resumen}</p>
+                                            
+                                            {/* AQUÍ ESTÁ EL LINK QUE PIDE EL PROFE */}
+                                            <div>
+                                                <a 
+                                                    href={`/blog/${post.id}`} /* Si usan React Router, aquí va un <Link to="..."> */
+                                                    className="btn btn-sm px-4 fw-bold text-dark border-0 shadow-sm"
+                                                    style={{ backgroundColor: '#fce4ec' }}
+                                                >
+                                                    Leer artículo completo →
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
 
                         </div>
@@ -119,7 +92,6 @@ function Blog() {
                 </div>
             </div>
         </div> 
-        /* CIERRE DEL DIV DE FONDO */
     )
 }
 

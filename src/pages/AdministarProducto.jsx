@@ -242,4 +242,4 @@ function AdminProductos() {
   )
 }
 
-export default AdminProductos
+export default AdminProductos         
