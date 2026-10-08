@@ -13,6 +13,7 @@ import Ventas from './pages/Productos.jsx'
 import Registro from './pages/Registro'
 import Login from './pages/Login'
 import Blog from './pages/Blog'
+import ArticuloBlog from './pages/ArticuloBlog.jsx' // NUEVO
 import Contacto from './pages/Contacto'
 import Carrito from './pages/Carrito'
 import DetalleProducto from './pages/DetalleProducto.jsx'
@@ -60,6 +61,7 @@ function MainLayout({ carrito, agregarAlCarro, eliminarDelCarro, isAdmin, setIsA
           <Route path="/Registro" element={<Registro />} />
           <Route path="/Login" element={<Login onLogin={(estado) => setIsAdmin(estado)} />} />
           <Route path="/Blog" element={<Blog />} />
+          <Route path="/Blog/:id" element={<ArticuloBlog />} /> {/* NUEVO */}
           <Route path="/Contacto" element={<Contacto />} />
           <Route path="*" element={<Index />} />
         </Routes>
