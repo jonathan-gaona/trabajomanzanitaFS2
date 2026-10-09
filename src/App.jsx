@@ -16,6 +16,7 @@ import Blog from './pages/Blog'
 import ArticuloBlog from './pages/ArticuloBlog.jsx' // NUEVO
 import Contacto from './pages/Contacto'
 import Carrito from './pages/Carrito'
+import ResultadoPago from './pages/ResultadoPago.jsx' // NUEVO: pago exitoso / erróneo
 import DetalleProducto from './pages/DetalleProducto.jsx'
 // Admin
 import AdminProductos from './pages/AdministarProducto.jsx'
@@ -23,7 +24,7 @@ import NavbarAdmin from './components/NavbarAdmin.jsx'
 import AdminHome from './pages/AdminHome'
 import AdminUser from './pages/AdminUser'
 
-function MainLayout({ carrito, agregarAlCarro, eliminarDelCarro, isAdmin, setIsAdmin }) {
+function MainLayout({ carrito, agregarAlCarro, eliminarDelCarro, vaciarCarrito, isAdmin, setIsAdmin }) {
   const location = useLocation()
   const navigate = useNavigate()
   
@@ -43,13 +44,16 @@ function MainLayout({ carrito, agregarAlCarro, eliminarDelCarro, isAdmin, setIsA
 
   return (
     <div style={estatusGeneral}>
-            {esAdmin ? <NavbarAdmin onLogout={handleLogout} /> : <Navbar carrito={carrito} />}
+      {/* d-print-none: el navbar no sale al imprimir la boleta */}
+      <div className="d-print-none">
+        {esAdmin ? <NavbarAdmin onLogout={handleLogout} /> : <Navbar carrito={carrito} />}
+      </div>
 
       <main className="container pt-4" style={{ flexGrow: 1 }}>
         <Routes>
           {/* Rutas de Administrador */}
-          <Route path="/admin" element={isAdmin?  <AdminHome />: <Navigate to="Login" remplace/>} />
-          <Route path="/admin/usuarios" element={isAdmin ? <AdminUser />: <Navigate to="/Login" replace />} />
+          <Route path="/admin" element={isAdmin ? <AdminHome /> : <Navigate to="/Login" replace />} />
+          <Route path="/admin/usuarios" element={isAdmin ? <AdminUser /> : <Navigate to="/Login" replace />} />
           <Route path="/admin/productos" element={isAdmin ? <AdminProductos /> : <Navigate to="/Login" replace />} />
 
           {/* Rutas generales */}
@@ -58,6 +62,7 @@ function MainLayout({ carrito, agregarAlCarro, eliminarDelCarro, isAdmin, setIsA
           <Route path="/nosotros" element={<Nosotros />} />
           <Route path="/Ventas" element={<Ventas onAgregarAlCarro={agregarAlCarro} carrito={carrito} />} />
           <Route path="/Carrito" element={<Carrito carrito={carrito} onEliminarDelCarro={eliminarDelCarro} />} />
+          <Route path="/resultado-pago" element={<ResultadoPago onVaciarCarrito={vaciarCarrito} />} /> {/* NUEVO */}
           <Route path="/Registro" element={<Registro />} />
           <Route path="/Login" element={<Login onLogin={(estado) => setIsAdmin(estado)} />} />
           <Route path="/Blog" element={<Blog />} />
@@ -66,7 +71,10 @@ function MainLayout({ carrito, agregarAlCarro, eliminarDelCarro, isAdmin, setIsA
           <Route path="*" element={<Index />} />
         </Routes>
       </main>
-      <Footer />
+
+      <div className="d-print-none">
+        <Footer />
+      </div>
     </div>
   )
 }
@@ -92,14 +100,18 @@ function App() {
   }
 
   const eliminarDelCarro = (indexParaBorrar) => {
-    setCarrito(carrito.filter((_, index) => index !== indexParaBorrar))
+    setCarrito((prev) => prev.filter((_, index) => index !== indexParaBorrar))
   }
+
+  // NUEVO: se llama cuando el pago fue exitoso
+  const vaciarCarrito = () => setCarrito([])
 
   return (
     <MainLayout 
       carrito={carrito} 
       agregarAlCarro={agregarAlCarro} 
       eliminarDelCarro={eliminarDelCarro}
+      vaciarCarrito={vaciarCarrito}
       isAdmin={isAdmin}
       setIsAdmin={setIsAdmin}
     />
