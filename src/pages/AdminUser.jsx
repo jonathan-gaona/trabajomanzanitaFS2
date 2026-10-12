@@ -5,7 +5,7 @@ function AdminUser() {
   const [usuarios, setUsuarios] = useState([])
   const [seleccionado, setSeleccionado] = useState(null)
 
-  // Formulario estructurado exactamente según UpdateUser DTO (sin historialCompras)
+  // Formulario estructurado según DTO de usuario
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
@@ -60,6 +60,12 @@ function AdminUser() {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
+    // Validar que la contraseña tenga al menos 10 caracteres al crear o si se está modificando
+    if (!seleccionado && formData.paswword.length < 10) {
+      alert('La contraseña debe tener al menos 10 caracteres.')
+      return
+    }
+
     try {
       if (seleccionado) {
         // Actualizar usuario en la BD
@@ -69,8 +75,11 @@ function AdminUser() {
         })
         alert('¡Usuario modificado con éxito!')
       } else {
-        // Crear usuario en la BD
-        await userApi.createUser(formData)
+        // Crear usuario en la BD enviando historialCompras vacío
+        await userApi.createUser({
+          ...formData,
+          historialCompras: []
+        })
         alert('¡Usuario creado con éxito!')
       }
 
@@ -92,7 +101,7 @@ function AdminUser() {
 
     if (confirmar) {
       try {
-        await userApi.deleteUser(seleccionado.email)
+        await userApi.deleteUser(seleccionado)
         alert('¡Usuario eliminado con éxito!')
         await cargarUsuarios()
         handleLimpiar()
@@ -198,7 +207,7 @@ function AdminUser() {
                   />
                 </div>
 
-                {/* Campo Rol (Ajustado para vista móvil) */}
+                {/* Campo Rol */}
                 <div className="mb-3">
                   <label className="form-label small fw-bold text-dark">Rol del Usuario</label>
                   <select 
@@ -230,14 +239,15 @@ function AdminUser() {
 
                 {/* Campo Password */}
                 <div className="mb-3">
-                  <label className="form-label small fw-bold text-dark">Contraseña</label>
+                  <label className="form-label small fw-bold text-dark">Contraseña (Mínimo 10 caracteres)</label>
                   <input 
                     type="password" 
                     name="paswword"
                     value={formData.paswword}
                     onChange={handleChange}
                     className="form-control"
-                    placeholder="********"
+                    placeholder="Mínimo 10 caracteres"
+                    minLength={10}
                     required={!seleccionado}
                   />
                 </div>
@@ -252,7 +262,7 @@ function AdminUser() {
                     {seleccionado ? 'Modificar' : 'Agregar'}
                   </button>
 
-                  {/* Botón de Eliminar perfil (Solo visible al seleccionar un usuario) */}
+                  {/* Botón de Eliminar perfil */}
                   {seleccionado && (
                     <>
                       <button 

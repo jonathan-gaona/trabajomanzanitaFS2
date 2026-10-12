@@ -41,10 +41,10 @@ function NavbarAdmin({ onLogout }) {
             </li>
             <li className="nav-item">
               <Link 
-                to="/admin/productos" 
-                className={`nav-link fw-bold ${location.pathname === '/admin/productos' ? 'text-dark text-decoration-underline' : 'text-secondary'}`}
+                to="/admin/inventario"
+                className={`nav-link fw-bold ${location.pathname === '/admin/inventario' ? 'text-dark text-decoration-underline' : 'text-secondary'}`}
               >
-                PRODUCTOS
+                Inventario
               </Link>
             </li>
             <li className="nav-item ms-lg-3 mt-2 mt-lg-0">

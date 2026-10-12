@@ -19,11 +19,10 @@ import Carrito from './pages/Carrito'
 import ResultadoPago from './pages/ResultadoPago.jsx' // NUEVO: pago exitoso / erróneo
 import DetalleProducto from './pages/DetalleProducto.jsx'
 // Admin
-import AdminProductos from './pages/AdministarProducto.jsx'
+import GestionInventario from './pages/GestionInventario.jsx'
 import NavbarAdmin from './components/NavbarAdmin.jsx'
 import AdminHome from './pages/AdminHome'
-import AdminUser from './pages/AdminUser'
-import { userApi } from './Data/ConexionUser.js';
+import AdminUser from './pages/AdminUser'    
 
 function MainLayout({ carrito, agregarAlCarro, eliminarDelCarro, vaciarCarrito, isAdmin, setIsAdmin }) {
   const location = useLocation()
@@ -55,7 +54,7 @@ function MainLayout({ carrito, agregarAlCarro, eliminarDelCarro, vaciarCarrito, 
           {/* Rutas de Administrador */}
           <Route path="/admin" element={isAdmin ? <AdminHome /> : <Navigate to="/Login" replace />} />
           <Route path="/admin/usuarios" element={isAdmin ? <AdminUser /> : <Navigate to="/Login" replace />} />
-          <Route path="/admin/productos" element={isAdmin ? <AdminProductos /> : <Navigate to="/Login" replace />} />
+          <Route path="/admin/inventario" element={isAdmin ? <GestionInventario/> : <Navigate to="/Login" replace />} />
 
           {/* Rutas generales */}
           <Route path="/producto/:id" element={<DetalleProducto onAgregarAlCarro={agregarAlCarro} />} />
