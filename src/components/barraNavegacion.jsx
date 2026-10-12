@@ -14,7 +14,7 @@ function Navbar({ carrito = [] }) {
                 height="40" 
                 className="d-inline-block align-text-top me-2 rounded-circle" 
             />
-             AnimeWord
+            AnimeWord
         </NavLink>
 
         <button 

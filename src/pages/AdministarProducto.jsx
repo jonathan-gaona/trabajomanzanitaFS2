@@ -2,13 +2,11 @@ import { useState, useEffect } from 'react'
 import productosIniciales from '../Data/productos.json'
 
 function AdminProductos() {
-  // Inicializamos el estado cargando desde localStorage, o usamos el JSON si está vacío
   const [productos, setProductos] = useState(() => {
     const guardados = localStorage.getItem('admin_productos')
     return guardados ? JSON.parse(guardados) : productosIniciales
   })
 
-  // Estado para el formulario (Crear o Editar)
   const [modoEdicion, setModoEdicion] = useState(false)
   const [idEditando, setIdEditando] = useState(null)
   
@@ -19,7 +17,10 @@ function AdminProductos() {
     descripcion: ''
   })
 
-  // Guardar en localStorage cada vez que la lista de productos cambie
+  // Estado para la vista previa y el arrastre de imagen
+  const [previewImagen, setPreviewImagen] = useState('')
+  const [isDragging, setIsDragging] = useState(false)
+
   useEffect(() => {
     localStorage.setItem('admin_productos', JSON.stringify(productos))
   }, [productos])
@@ -31,17 +32,74 @@ function AdminProductos() {
     })
   }
 
-  // Manejar el envío del formulario (Crear o Actualizar)
+  // Procesar imagen mediante el middleware de Vite para guardarla en public/img/productos/
+  const procesarArchivoImagen = async (file) => {
+    if (!file || !file.type.startsWith('image/')) {
+      alert('Por favor, selecciona o arrastra un archivo de imagen válido.')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = async () => {
+      try {
+        const response = await fetch('/api/upload-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nombre: file.name,
+            imagenBase64: reader.result
+          })
+        })
+
+        const resultado = await response.json()
+        if (resultado.success) {
+          setFormData(prev => ({
+            ...prev,
+            imagen: resultado.path
+          }))
+          setPreviewImagen(resultado.path)
+        } else {
+          alert('Error al guardar la imagen en el servidor.')
+        }
+      } catch (error) {
+        console.error('Error de red al subir la imagen:', error)
+      }
+    }
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = () => {
+    setIsDragging(false)
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    setIsDragging(false)
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      procesarArchivoImagen(e.dataTransfer.files[0])
+    }
+  }
+
+  const handleFileSelect = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      procesarArchivoImagen(e.target.files[0])
+    }
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
 
     if (!formData.nombre || !formData.precio || !formData.imagen) {
-      alert('Por favor, completa al menos el nombre, precio y la imagen.')
+      alert('Por favor, completa al menos el nombre, precio y selecciona una imagen.')
       return
     }
 
     if (modoEdicion) {
-      // Actualizar producto existente
       setProductos(productos.map(p => 
         p.id === idEditando 
           ? { ...p, ...formData, precio: Number(formData.precio) } 
@@ -50,7 +108,6 @@ function AdminProductos() {
       setModoEdicion(false)
       setIdEditando(null)
     } else {
-      // Crear nuevo producto
       const nuevoProducto = {
         id: productos.length > 0 ? Math.max(...productos.map(p => p.id)) + 1 : 1,
         nombre: formData.nombre,
@@ -61,11 +118,10 @@ function AdminProductos() {
       setProductos([...productos, nuevoProducto])
     }
 
-    // Limpiar formulario
     setFormData({ nombre: '', precio: '', imagen: '', descripcion: '' })
+    setPreviewImagen('')
   }
 
-  // Preparar datos para editar
   const handleEditar = (producto) => {
     setModoEdicion(true)
     setIdEditando(producto.id)
@@ -75,9 +131,9 @@ function AdminProductos() {
       imagen: producto.imagen,
       descripcion: producto.descripcion || ''
     })
+    setPreviewImagen(producto.imagen)
   }
 
-  // Eliminar producto
   const handleEliminar = (id) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este producto?')) {
       setProductos(productos.filter(p => p.id !== id))
@@ -122,17 +178,44 @@ function AdminProductos() {
                 />
               </div>
 
+              {/* Zona de Arrastre de Imagen respetando la estructura visual */}
               <div className="col-12">
-                <label className="form-label small fw-bold" style={{ color: '#5d4037' }}>Ruta de la Imagen</label>
-                <input 
-                  type="text" 
-                  name="imagen"
-                  value={formData.imagen}
-                  onChange={handleChange}
-                  className="form-control border-secondary"
-                  placeholder="Ej: /img/bloodc.jpg"
-                  required
-                />
+                <label className="form-label small fw-bold" style={{ color: '#5d4037' }}>Imagen del Producto (Arrastra o haz clic)</label>
+                <div 
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`border border-2 border-dashed rounded-3 p-3 text-center position-relative bg-white ${isDragging ? 'border-dark bg-light' : 'border-secondary'}`}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => document.getElementById('fileInputProducto').click()}
+                >
+                  <input 
+                    id="fileInputProducto"
+                    type="file" 
+                    accept="image/*" 
+                    className="d-none" 
+                    onChange={handleFileSelect}
+                  />
+
+                  {previewImagen ? (
+                    <div className="d-flex align-items-center justify-content-center gap-3">
+                      <img 
+                        src={previewImagen} 
+                        alt="Vista previa" 
+                        style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '50%' }} 
+                        className="border border-secondary shadow-sm"
+                      />
+                      <div className="text-start">
+                        <span className="small text-success fw-bold d-block">Imagen cargada correctamente</span>
+                        <span className="small text-muted">{formData.imagen}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-2 text-muted">
+                      <p className="mb-0 small fw-bold">Arrastra una imagen aquí o haz clic para seleccionarla</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="col-12">
@@ -162,6 +245,7 @@ function AdminProductos() {
                       setModoEdicion(false)
                       setIdEditando(null)
                       setFormData({ nombre: '', precio: '', imagen: '', descripcion: '' })
+                      setPreviewImagen('')
                     }}
                     className="btn btn-secondary fw-bold px-4"
                   >
@@ -242,4 +326,4 @@ function AdminProductos() {
   )
 }
 
-export default AdminProductos         
+export default AdminProductos

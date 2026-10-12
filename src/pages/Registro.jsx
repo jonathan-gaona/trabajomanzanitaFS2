@@ -1,6 +1,9 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom' // Añadido por si quieres redirigir al registrarse
+import { userApi } from '../Data/ConexionUser' // Importamos tu conexión a la API
 
 function Registro() {
+    const navigate = useNavigate()
     const [formData, setFormData] = useState({
         nombre: '',
         correo: '',
@@ -19,7 +22,7 @@ function Registro() {
         })
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
         let nuevosErrores = {}
 
@@ -65,11 +68,33 @@ function Registro() {
         setErrors(nuevosErrores)
 
         if (Object.keys(nuevosErrores).length === 0) {
-            setMensajeExito(true)
+            try {
+                // Adaptamos los nombres del formulario al DTO que espera tu backend (CreateUser)
+                const datosParaEnviar = {
+                    nombre: formData.nombre,
+                    email: formData.correo,         // El backend recibe 'email'
+                    paswword: formData.password,
+                    rol:'cliente'     // El backend recibe 'paswword' (con doble 'w')
+                }
 
-            const { confirmarCorreo, confirmarPassword, ...datosParaEnviar } = formData
+                // Llamamos a la API para crear el usuario real en la base de datos
+                const respuesta = await userApi.createUser(datosParaEnviar)
 
-            console.log('JSON resultante listo para enviar (sin confirmaciones):', datosParaEnviar)
+                if (respuesta) {
+                    setMensajeExito(true)
+                    console.log('Usuario registrado con éxito:', respuesta)
+
+                    // Opcional: Redirigir al login después de unos segundos
+                    setTimeout(() => {
+                        navigate('/login')
+                    }, 1500)
+                }
+            } catch (error) {
+
+                console.error('Error al registrar usuario:', error)
+                setErrors({ correo: 'Ocurrió un error al registrar el usuario, receurde que la contraseña debe tener minimo 10 carcteres.' })
+                setMensajeExito(false)
+            }
         } else {
             setMensajeExito(false)
         }
@@ -84,7 +109,7 @@ function Registro() {
 
                         {mensajeExito && (
                             <div className="alert alert-success text-center" role="alert">
-                                ¡Validación exitosa! Los datos cumplen con todas las reglas.
+                                ¡Registro exitoso! Redirigiendo al login...
                             </div>
                         )}
                         <form onSubmit={handleSubmit} noValidate>

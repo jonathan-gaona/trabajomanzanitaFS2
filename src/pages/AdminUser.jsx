@@ -1,29 +1,53 @@
 import { useState, useEffect } from 'react'
-import usuariosJson from '../Data/user.json'
+import { userApi } from '../Data/ConexionUser'
 
 function AdminUser() {
-  // Siempre iniciamos cargando el archivo JSON directamente
-  const [usuarios, setUsuarios] = useState(usuariosJson)
+  const [usuarios, setUsuarios] = useState([])
   const [seleccionado, setSeleccionado] = useState(null)
-  
+
+  // Formulario estructurado exactamente según UpdateUser DTO (sin historialCompras)
   const [formData, setFormData] = useState({
     nombre: '',
-    correo: '',
-    password: ''
+    apellido: '',
+    rol: 'cliente',
+    email: '',
+    paswword: ''
   })
+
+  // Función para obtener la lista fresca desde la API
+  const cargarUsuarios = async () => {
+    try {
+      const datos = await userApi.getUsers()
+      setUsuarios(datos)
+    } catch (error) {
+      console.error('Error al cargar usuarios:', error)
+    }
+  }
+
+  useEffect(() => {
+    cargarUsuarios()
+  }, [])
 
   const handleSelectRow = (usuario) => {
     setSeleccionado(usuario)
     setFormData({
       nombre: usuario.nombre || '',
-      correo: usuario.correo || '',
-      password: usuario.password || ''
+      apellido: usuario.apellido || '',
+      rol: usuario.rol || 'cliente',
+      email: usuario.email || '',
+      paswword: usuario.paswword || ''
     })
   }
 
   const handleLimpiar = () => {
     setSeleccionado(null)
-    setFormData({ nombre: '', correo: '', password: '' })
+    setFormData({
+      nombre: '',
+      apellido: '',
+      rol: 'cliente',
+      email: '',
+      paswword: ''
+    })
   }
 
   const handleChange = (e) => {
@@ -33,21 +57,54 @@ function AdminUser() {
     })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (seleccionado) {
-      setUsuarios(usuarios.map(u => u.id === seleccionado.id ? { ...formData, id: seleccionado.id } : u))
-      alert('¡Usuario modificado con éxito!')
-    } else {
-      const nuevo = { ...formData, id: Date.now() }
-      setUsuarios([...usuarios, nuevo])
-      alert('¡Usuario agregado con éxito!')
+
+    try {
+      if (seleccionado) {
+        // Actualizar usuario en la BD
+        await userApi.updateUser({
+          ...formData,
+          historialCompras: seleccionado.historialCompras || []
+        })
+        alert('¡Usuario modificado con éxito!')
+      } else {
+        // Crear usuario en la BD
+        await userApi.createUser(formData)
+        alert('¡Usuario creado con éxito!')
+      }
+
+      await cargarUsuarios()
+      handleLimpiar()
+    } catch (error) {
+      console.error('Error al guardar el usuario:', error)
+      alert(`Ocurrió un error: ${error.message || 'Error en la solicitud'}`)
     }
-    handleLimpiar()
+  }
+
+  // Función para eliminar usuario
+  const handleEliminar = async () => {
+    if (!seleccionado) return
+
+    const confirmar = window.confirm(
+      `¿Estás seguro de que deseas eliminar al usuario ${seleccionado.nombre}?`
+    )
+
+    if (confirmar) {
+      try {
+        await userApi.deleteUser(seleccionado.email)
+        alert('¡Usuario eliminado con éxito!')
+        await cargarUsuarios()
+        handleLimpiar()
+      } catch (error) {
+        console.error('Error al eliminar usuario:', error)
+        alert(`No se pudo eliminar el usuario: ${error.message || 'Error de red'}`)
+      }
+    }
   }
 
   return (
-    <div className="w-100 pb-5">
+    <div className="w-100 pb-5 overflow-hidden">
       <h2 className="mb-4 text-dark fw-bold text-uppercase">Gestión de Usuarios</h2>
 
       <div className="row g-4">
@@ -56,7 +113,7 @@ function AdminUser() {
         <div className="col-12 col-lg-7">
           <div className="card shadow-sm border-0">
             <div className="card-header text-white d-flex justify-content-between align-items-center" style={{ backgroundColor: '#5d4037' }}>
-              <span className="fw-bold text-uppercase">Listado de Usuarios (Desde JSON)</span>
+              <span className="fw-bold text-uppercase">Listado de Usuarios</span>
               <button className="btn btn-sm btn-light text-dark fw-bold" onClick={handleLimpiar}>
                 + Nuevo Usuario
               </button>
@@ -68,23 +125,27 @@ function AdminUser() {
                     <tr>
                       <th>Nombre</th>
                       <th>Correo</th>
-                      <th>Contraseña</th>
+                      <th>Rol</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {usuarios.length > 0 ? (
-                      usuarios.map((usu) => (
+                    {usuarios && usuarios.length > 0 ? (
+                      usuarios.map((usu, index) => (
                         <tr 
-                          key={usu.id} 
+                          key={usu.email || index} 
                           onClick={() => handleSelectRow(usu)}
                           style={{ 
                             cursor: 'pointer', 
-                            backgroundColor: seleccionado?.id === usu.id ? '#fce4ec' : 'transparent' 
+                            backgroundColor: seleccionado?.email === usu.email ? '#fce4ec' : 'transparent' 
                           }}
                         >
-                          <td className="fw-bold">{usu.nombre}</td>
-                          <td>{usu.correo}</td>
-                          <td>{usu.password}</td>
+                          <td className="fw-bold">{usu.nombre} {usu.apellido || ''}</td>
+                          <td className="text-break">{usu.email}</td>
+                          <td>
+                            <span className={`badge ${usu.rol === 'administrador' ? 'bg-danger' : 'bg-secondary'}`}>
+                              {usu.rol || 'cliente'}
+                            </span>
+                          </td>
                         </tr>
                       ))
                     ) : (
@@ -101,7 +162,7 @@ function AdminUser() {
           </div>
         </div>
 
-        {/* COLUMNA DERECHA: Formulario dinámico */}
+        {/* COLUMNA DERECHA: Formulario DTO */}
         <div className="col-12 col-lg-5">
           <div className="card shadow-sm border-0" style={{ backgroundColor: '#fce4ec' }}>
             <div className="card-header text-white fw-bold py-2 text-uppercase" style={{ backgroundColor: '#5d4037' }}>
@@ -109,6 +170,8 @@ function AdminUser() {
             </div>
             <div className="card-body">
               <form onSubmit={handleSubmit}>
+                
+                {/* Campo Nombre */}
                 <div className="mb-3">
                   <label className="form-label small fw-bold text-dark">Nombre</label>
                   <input 
@@ -117,35 +180,70 @@ function AdminUser() {
                     value={formData.nombre}
                     onChange={handleChange}
                     className="form-control"
+                    placeholder="Ingresa el nombre"
                     required
                   />
                 </div>
 
+                {/* Campo Apellido */}
                 <div className="mb-3">
-                  <label className="form-label small fw-bold text-dark">Correo Electrónico</label>
+                  <label className="form-label small fw-bold text-dark">Apellido</label>
                   <input 
-                    type="email" 
-                    name="correo"
-                    value={formData.correo}
+                    type="text" 
+                    name="apellido"
+                    value={formData.apellido}
                     onChange={handleChange}
                     className="form-control"
+                    placeholder="Ingresa el apellido"
+                  />
+                </div>
+
+                {/* Campo Rol (Ajustado para vista móvil) */}
+                <div className="mb-3">
+                  <label className="form-label small fw-bold text-dark">Rol del Usuario</label>
+                  <select 
+                    name="rol"
+                    value={formData.rol}
+                    onChange={handleChange}
+                    className="form-select border-secondary w-100"
+                    style={{ maxWidth: '100%', boxSizing: 'border-box' }}
+                  >
+                    <option value="cliente">cliente</option>
+                    <option value="administrador">administrador</option>
+                  </select>
+                </div>
+
+                {/* Campo Email */}
+                <div className="mb-3">
+                  <label className="form-label small fw-bold text-dark">Correo Electrónico (email)</label>
+                  <input 
+                    type="email" 
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="form-control"
+                    placeholder="usuario@correo.com"
+                    disabled={Boolean(seleccionado)}
                     required
                   />
                 </div>
 
+                {/* Campo Password */}
                 <div className="mb-3">
                   <label className="form-label small fw-bold text-dark">Contraseña</label>
                   <input 
-                    type="text" 
-                    name="password"
-                    value={formData.password}
+                    type="password" 
+                    name="paswword"
+                    value={formData.paswword}
                     onChange={handleChange}
                     className="form-control"
-                    required
+                    placeholder="********"
+                    required={!seleccionado}
                   />
                 </div>
 
-                <div className="d-grid gap-2">
+                {/* Acciones del formulario */}
+                <div className="d-grid gap-2 mt-4">
                   <button 
                     type="submit" 
                     className="btn text-white fw-bold py-2"
@@ -154,14 +252,25 @@ function AdminUser() {
                     {seleccionado ? 'Modificar' : 'Agregar'}
                   </button>
 
+                  {/* Botón de Eliminar perfil (Solo visible al seleccionar un usuario) */}
                   {seleccionado && (
-                    <button 
-                      type="button" 
-                      className="btn btn-outline-secondary btn-sm"
-                      onClick={handleLimpiar}
-                    >
-                      Cancelar selección
-                    </button>
+                    <>
+                      <button 
+                        type="button" 
+                        className="btn btn-danger fw-bold py-2"
+                        onClick={handleEliminar}
+                      >
+                        Eliminar Perfil
+                      </button>
+
+                      <button 
+                        type="button" 
+                        className="btn btn-outline-secondary btn-sm mt-1"
+                        onClick={handleLimpiar}
+                      >
+                        Cancelar selección
+                      </button>
+                    </>
                   )}
                 </div>
               </form>

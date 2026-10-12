@@ -23,6 +23,7 @@ import AdminProductos from './pages/AdministarProducto.jsx'
 import NavbarAdmin from './components/NavbarAdmin.jsx'
 import AdminHome from './pages/AdminHome'
 import AdminUser from './pages/AdminUser'
+import { userApi } from './Data/ConexionUser.js';
 
 function MainLayout({ carrito, agregarAlCarro, eliminarDelCarro, vaciarCarrito, isAdmin, setIsAdmin }) {
   const location = useLocation()

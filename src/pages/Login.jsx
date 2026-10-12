@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import usuariosJson from '../Data/user.json'
+import { userApi } from '../Data/ConexionUser'
+
+
 
 function Login({ onLogin }) {
     const navigate = useNavigate()
@@ -8,7 +10,6 @@ function Login({ onLogin }) {
         correo: '',
         password: ''
     })
-
     const [errors, setErrors] = useState({})
     const [mensajeExito, setMensajeExito] = useState(false)
 
@@ -19,7 +20,7 @@ function Login({ onLogin }) {
         })
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
         let nuevosErrores = {}
 
@@ -30,19 +31,27 @@ function Login({ onLogin }) {
             nuevosErrores.password = 'La contraseña es requerida.'
         }
 
-        if (Object.keys(nuevosErrores).length === 0) {
+        if (Object.keys(nuevosErrores).length > 0) {
+            setErrors(nuevosErrores)
+            setMensajeExito(false)
+            return
+        }
 
-            const usuarioEncontrado = usuariosJson.find(
-                u => u.correo.toLowerCase() === formData.correo.toLowerCase() && u.password === formData.password
-            )
-
-            if (!usuarioEncontrado) {
-                nuevosErrores.correo = 'Correo o contraseña incorrectos, o el usuario no está registrado.'
-            } else {
+        try {
+            // Llamamos a la API usando el método login. 
+            // Recuerda que tu backend recibe 'email' y 'paswword'
+            const resultado = await userApi.login(formData.correo, formData.password)
+            const usuarrio= await userApi.getUserByEmail(formData.correo)
+            console.log(usuarrio)
+            // Si la API responde correctamente y valida el login:
+            if (resultado) {
+                // Verificamos si es admin según el correo
+                const esAdmin = usuarrio.rol ==='administrador'
                 
-                const esAdmin = usuarioEncontrado.correo.endsWith('@profesor.duoc.cl')
+                
 
                 setMensajeExito(true)
+                setErrors({})
                 
                 if (onLogin) {
                     onLogin(esAdmin)
@@ -55,11 +64,14 @@ function Login({ onLogin }) {
                         navigate('/')
                     }
                 }, 1500)
+            } else {
+                setErrors({ correo: 'Correo o contraseña incorrectos.' })
+                setMensajeExito(false)
             }
-        }
-
-        setErrors(nuevosErrores)
-        if (Object.keys(nuevosErrores).length > 0) {
+        } catch (error) {
+            // Si el backend lanza un error (credenciales malas, etc.)
+            console.error("Error en el login:", error)
+            setErrors({ correo: 'Correo o contraseña incorrectos, o el usuario no está registrado.' })
             setMensajeExito(false)
         }
     }
