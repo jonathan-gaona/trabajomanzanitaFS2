@@ -5,7 +5,6 @@ import Contador from './Contador'
 function Card({ productos, onAgregarAlCarro }) {
   const [cantidades, setCantidades] = useState({})
 
-  // Usamos el nombre del producto o índice como clave segura para el contador, ya que la API no entrega ID numérico
   const getCantidad = (key) => cantidades[key] || 1
 
   const setCantidad = (key, valor) => {
@@ -20,7 +19,7 @@ function Card({ productos, onAgregarAlCarro }) {
     <div className="row">
       {productos.map((producto, index) => {
         const nombreProducto = producto.nombre || 'Sin nombre'
-        const keyUnica = producto.cBarras || producto.Cbarras || producto.codigoBarras || nombreProducto || index
+        const keyUnica = producto.cBarras || producto.Cbarras || producto.codigoBarras || producto.id || nombreProducto || index
         const imgPath = producto.imagen || producto.imagenPath || 'https://via.placeholder.com/300'
         const precioVal = Number(producto.precio) || 0
 
@@ -39,16 +38,16 @@ function Card({ productos, onAgregarAlCarro }) {
                 <p className="fw-bold fs-5" style={{ color: '#5d4037' }}>
                   ${precioVal.toLocaleString('es-CL')}
                 </p>
+                <p className="small text-muted mb-2">Stock disponible: {producto.stock ?? 'N/A'}</p>
 
                 <div className="mb-2">
                   <Contador
-                    cantidad={getCantidad(nombreProducto)}
-                    onCambiar={(nueva) => setCantidad(nombreProducto, nueva)}
+                    cantidad={getCantidad(keyUnica)}
+                    onCambiar={(nueva) => setCantidad(keyUnica, nueva)}
                   />
                 </div>
 
                 <div className="mt-auto d-flex flex-column gap-2">
-                  {/* Corregido: Usamos producto.nombre en lugar de prod.nombre */}
                   <Link
                     to={`/producto/${encodeURIComponent(nombreProducto)}`} 
                     className="btn btn-outline-dark fw-bold w-100"
@@ -58,7 +57,7 @@ function Card({ productos, onAgregarAlCarro }) {
                   </Link>
 
                   <button
-                    onClick={() => onAgregarAlCarro(producto, getCantidad(nombreProducto))}
+                    onClick={() => onAgregarAlCarro(producto, getCantidad(keyUnica))}
                     className="btn w-100 text-white fw-bold py-2"
                     style={{ backgroundColor: '#5d4037', border: '1px solid #fce4ec' }}
                   >

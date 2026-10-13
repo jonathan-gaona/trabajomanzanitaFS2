@@ -52,7 +52,7 @@ function NavbarAdmin({ onLogout }) {
                 to="/admin/noticias"
                 className={`nav-link fw-bold ${location.pathname === '/admin/noticias' ? 'text-dark text-decoration-underline' : 'text-secondary'}`}
               >
-                Inventario
+                Blog
               </Link>
             </li>
             <li className="nav-item ms-lg-3 mt-2 mt-lg-0">

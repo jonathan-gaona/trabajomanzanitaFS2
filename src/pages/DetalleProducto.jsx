@@ -60,6 +60,20 @@ function DetalleProducto({ onAgregarAlCarro }) {
   }
 
   const handleAgregarCantidad = () => {
+    const stockDisponible = Number(producto.stock) || 0
+
+    // Validamos si el stock es 0 o si la cantidad seleccionada supera el stock disponible
+    if (stockDisponible <= 0) {
+      alert(`❌ Lo sentimos, el producto "${producto.nombre}" se encuentra sin stock disponible.`)
+      return
+    }
+
+    if (cantidad > stockDisponible) {
+      alert(`⚠️ Stock insuficiente. Solo hay ${stockDisponible} unidad(es) disponible(s).`)
+      return
+    }
+
+    // Si pasa la validación, agregamos al carro y mostramos el mensaje de éxito real
     onAgregarAlCarro(producto, cantidad)
     alert(`¡Se han añadido ${cantidad} unidad(es) al carrito!`)
   }
@@ -95,6 +109,10 @@ function DetalleProducto({ onAgregarAlCarro }) {
 
           <p className="text-muted mb-4" style={{ lineHeight: '1.6' }}>
             {producto.descripcion || 'Pieza coleccionable de alta calidad, perfecta para exhibición y fanáticos del anime.'}
+          </p>
+
+          <p className="fw-bold text-secondary mb-3">
+            Stock disponible: <span className="text-dark">{producto.stock ?? 0}</span>
           </p>
 
           <hr className="border-secondary mb-4" />

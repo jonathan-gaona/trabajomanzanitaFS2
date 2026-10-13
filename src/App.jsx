@@ -40,8 +40,8 @@ function MainLayout({ carrito, agregarAlCarro, eliminarDelCarro, vaciarCarrito, 
   }
 
   const handleLogout = () => {
-    setUsuario(null)        // Limpia la información del usuario
-    navigate('/')           // Redirige inmediatamente al Index
+    setUsuario(null)
+    navigate('/')
   }
 
   return (
@@ -62,8 +62,8 @@ function MainLayout({ carrito, agregarAlCarro, eliminarDelCarro, vaciarCarrito, 
           <Route path="/" element={<Index onAgregarAlCarro={agregarAlCarro} />} />
           <Route path="/nosotros" element={<Nosotros />} />
           <Route path="/Ventas" element={<Ventas onAgregarAlCarro={agregarAlCarro} carrito={carrito} />} />
-          <Route path="/Carrito" element={<Carrito carrito={carrito} onEliminarDelCarro={eliminarDelCarro} />} />
-          <Route path="/resultado-pago" element={<ResultadoPago onVaciarCarrito={vaciarCarrito} />} />
+          <Route path="/Carrito" element={<Carrito carrito={carrito} onEliminarDelCarro={eliminarDelCarro} usuarioLogueado={usuario} />} />
+          <Route path="/resultado-pago" element={<ResultadoPago onVaciarCarrito={vaciarCarrito} usuarioLogueado={usuario} />} />
           <Route path="/Registro" element={<Registro />} />
           <Route path="/Login" element={<Login onLogin={(datosUsuario) => setUsuario(datosUsuario)} />} />
           <Route path="/Blog" element={<Blog />} />
@@ -82,18 +82,40 @@ function MainLayout({ carrito, agregarAlCarro, eliminarDelCarro, vaciarCarrito, 
 
 function App() {
   const [carrito, setCarrito] = useState([])
-  const [usuario, setUsuario] = useState(null) // Guardará el objeto completo del usuario autenticado
+  const [usuario, setUsuario] = useState(null)
 
   const agregarAlCarro = (producto, cantidad = 1) => {
+    // Identificador único robusto (cBarras, id o nombre)
+    const idProducto = producto.cBarras || producto.Cbarras || producto.codigoBarras || producto.id || producto.nombre
+
     setCarrito((prevCarrito) => {
-      const existente = prevCarrito.find((item) => item.id === producto.id)
+      const existente = prevCarrito.find((item) => {
+        const itemId = item.cBarras || item.Cbarras || item.codigoBarras || item.id || item.nombre
+        return itemId === idProducto
+      })
+
+      const stockDisponible = Number(producto.stock) || 0
 
       if (existente) {
-        return prevCarrito.map((item) =>
-          item.id === producto.id
-            ? { ...item, cantidad: item.cantidad + cantidad }
+        const cantidadActualEnCarro = existente.cantidad
+        const nuevaCantidadTotal = cantidadActualEnCarro + cantidad
+
+        if (nuevaCantidadTotal > stockDisponible) {
+          alert(`No puedes agregar más unidades. El stock máximo disponible es ${stockDisponible}.`)
+          return prevCarrito
+        }
+
+        return prevCarrito.map((item) => {
+          const itemId = item.cBarras || item.Cbarras || item.codigoBarras || item.id || item.nombre
+          return itemId === idProducto
+            ? { ...item, cantidad: nuevaCantidadTotal }
             : item
-        )
+        })
+      }
+
+      if (cantidad > stockDisponible) {
+        alert(`Stock insuficiente. Solo quedan ${stockDisponible} unidades disponibles.`)
+        return prevCarrito
       }
 
       return [...prevCarrito, { ...producto, cantidad }]

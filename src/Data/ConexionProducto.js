@@ -119,5 +119,33 @@ async updateCategory(nombreAnterior, nuevoNombre) {
     const json = await response.json();
     if (!json.success) throw new Error(json.message || "Error al actualizar la categoría");
     return json.data;
+},
+// Actualizar stock tras compra usando el método PUT general de tu API
+  async actualizarStockDespuesDeCompra(itemsCarrito) {
+    try {
+      for (const item of itemsCarrito) {
+        const stockActual = Number(item.stock) || 0
+        const cantidadComprada = Number(item.cantidad) || 0
+        const nuevoStock = Math.max(0, stockActual - cantidadComprada)
+
+        // Preparamos el objeto completo tal como lo exige tu DTO y la función updateProduct
+        const productoActualizado = {
+          nombre: item.nombre,
+          precio: Number(item.precio),
+          stock: nuevoStock,
+          categoria: item.categoria,
+          cBarras: item.cBarras || item.Cbarras || item.codigoBarras,
+          descripcion: item.descripcion || '',
+          imagen: item.imagen || item.imagenPath || ''
+        }
+
+        // Llamamos a tu función updateProduct existente
+        await this.updateProduct(productoActualizado)
+      }
+      return true
+    } catch (error) {
+      console.error('Error al actualizar el stock tras la compra:', error)
+      return false
+    }
+  }
 }
-};
