@@ -1,5 +1,5 @@
 // URL base de tu API (puedes ajustar el puerto o dominio si es diferente)
-const API_URL = 'http://localhost:3000/api'; // O la URL base de tu backend
+const API_URL = 'https://boleta-pedido.onrender.com/api'; // O la URL base de tu backend
 
 
 export const documentoApi = {

@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { productApi } from '../Data/ConexionProducto'
 import { validarProducto, validarCategoria } from '../validaciones/validacionesProductos'
+import { useNavigate } from 'react-router-dom'
 
 function GestionInventario() {
-  // Estado para controlar qué pestaña está activa: 'productos' o 'categorias'
+  const navigate = useNavigate()
   const [tabActiva, setTabActiva] = useState('productos')
 
-  // Estados compartidos y de productos
   const [productos, setProductos] = useState([])
   const [categorias, setCategorias] = useState([])
   const [modoEdicionProd, setModoEdicionProd] = useState(false)
@@ -25,28 +25,17 @@ function GestionInventario() {
   const [previewImagen, setPreviewImagen] = useState('')
   const [isDragging, setIsDragging] = useState(false)
 
-  // Estados de categorías
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null)
   const [nombreCategoria, setNombreCategoria] = useState('')
   const [nombreAnterior, setNombreAnterior] = useState('')
 
-  // Cargar datos iniciales desde la API
   const cargarDatos = async () => {
     try {
       let listaProductos = []
       let listaCategorias = []
 
-      try {
-        listaProductos = await productApi.getProducts()
-      } catch (e) {
-        console.warn('Sin productos o base de datos vacía')
-      }
-
-      try {
-        listaCategorias = await productApi.getCategories()
-      } catch (e) {
-        console.warn('Sin categorías o base de datos vacía')
-      }
+      try { listaProductos = await productApi.getProducts() } catch (e) {}
+      try { listaCategorias = await productApi.getCategories() } catch (e) {}
 
       setProductos(listaProductos || [])
       setCategorias(listaCategorias || [])
@@ -64,7 +53,6 @@ function GestionInventario() {
     cargarDatos()
   }, [])
 
-  // --- MANEJADORES DE PRODUCTOS ---
   const handleFormProductoChange = (e) => {
     setFormProducto({
       ...formProducto,
@@ -167,7 +155,6 @@ function GestionInventario() {
     setModoEdicionProd(true)
     setIdEditandoProd(prod.id)
 
-    // Soportamos todas las posibles variantes de nombres devueltos por la BD/Backend
     const codigoBarrasReal = prod.cBarras || prod.codigoBarras || prod.Cbarras || ''
     const imagenReal = prod.imagen || prod.imagenPath || ''
 
@@ -196,7 +183,6 @@ function GestionInventario() {
     }
   }
 
-  // --- MANEJADORES DE CATEGORÍAS ---
   const handleSelectCategoriaRow = (cat) => {
     setCategoriaSeleccionada(cat)
     const nombreReal = cat.cnombre || cat.nombre || ''
@@ -255,9 +241,18 @@ function GestionInventario() {
 
   return (
     <div className="container py-5">
-      <h2 className="fw-bold mb-4" style={{ color: '#5d4037' }}>Panel de Administración: Inventario</h2>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="fw-bold mb-0" style={{ color: '#5d4037' }}>Panel de Administración: Inventario</h2>
+        <button
+          onClick={() => navigate('/admin')}
+          className="btn btn-outline-dark fw-bold shadow-sm"
+          style={{ backgroundColor: '#fff', borderColor: '#5d4037', color: '#5d4037' }}
+        >
+          🏠 Volver al Admin Home
+        </button>
+      </div>
 
-      {/* Botones de Pestañas (Tabs) estilo moderno */}
+      {/* Botones de Pestañas */}
       <ul className="nav nav-pills mb-4 gap-2">
         <li className="nav-item">
           <button 
@@ -282,7 +277,6 @@ function GestionInventario() {
       {/* --- VISTA DE PRODUCTOS --- */}
       {tabActiva === 'productos' && (
         <div>
-          {/* Formulario de Agregar / Modificar Producto */}
           <div className="card shadow-sm border-secondary mb-5" style={{ backgroundColor: '#fce4ec' }}>
             <div className="card-header text-white fw-bold py-2" style={{ backgroundColor: '#5d4037' }}>
               {modoEdicionProd ? 'Modificar Producto' : 'Agregar Nuevo Producto'}
@@ -362,9 +356,8 @@ function GestionInventario() {
                     />
                   </div>
 
-                  {/* Zona de Arrastre de Imagen */}
                   <div className="col-12">
-                    <label className="form-label small fw-bold" style={{ color: '#5d4037' }}>Imagen del Producto (Arrastra o haz clic)</label>
+                    <label className="form-label small fw-bold" style={{ color: '#5d4037' }}>Imagen del Producto</label>
                     <div 
                       onDragOver={handleDragOver}
                       onDragLeave={handleDragLeave}
@@ -437,7 +430,6 @@ function GestionInventario() {
             </div>
           </div>
 
-          {/* Tabla de Productos */}
           <div className="card shadow-sm border-secondary">
             <div className="card-header text-white fw-bold py-2 text-uppercase" style={{ backgroundColor: '#5d4037' }}>
               Lista de Productos Registrados
@@ -542,7 +534,7 @@ function GestionInventario() {
                           return (
                             <tr 
                               key={cat.id || index} 
-                              onClick={() => handleSelectRow(cat)}
+                              onClick={() => handleSelectCategoriaRow(cat)}
                               style={{ 
                                 cursor: 'pointer', 
                                 backgroundColor: isSelected ? '#fce4ec' : 'transparent' 

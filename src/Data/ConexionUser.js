@@ -105,5 +105,26 @@ async updateUser(userData) {
         const json = await response.json();
         if (!json.success) throw new Error(json.message || "Credenciales inválidas");
         return json.data;
+    },
+
+    async agregarHistorialCompra(email, ticket) {
+    try {
+      const response = await fetch(`${API_URL}/user/historial`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, ticket }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al actualizar el historial de compras')
+      }
+      return data.data
+    } catch (error) {
+      console.error('Error en usuarioApi.agregarHistorialCompra:', error)
+      throw error
     }
+  }
 };

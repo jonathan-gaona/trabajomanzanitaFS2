@@ -1,15 +1,61 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { userApi } from '../Data/ConexionUser'
+import { documentoApi } from '../Data/ConexionBoletas'
 
 function Login({ onLogin }) {
     const navigate = useNavigate()
+    const [usuarioActual, setUsuarioActual] = useState(null)
+    const [historialDetallado, setHistorialDetallado] = useState([])
+    const [cargandoHistorial, setCargandoHistorial] = useState(false)
+
     const [formData, setFormData] = useState({
         correo: '',
         password: ''
     })
     const [errors, setErrors] = useState({})
     const [mensajeExito, setMensajeExito] = useState(false)
+
+    // Al cargar el componente, traemos el usuario fresco de PostgreSQL y las boletas de MongoDB
+    useEffect(() => {
+        const cargarDatosUsuario = async () => {
+            try {
+                const guardado = localStorage.getItem('usuarioLogueado')
+                if (guardado) {
+                    const usuarioLocal = JSON.parse(guardado)
+                    const email = usuarioLocal.email || usuarioLocal.correo
+
+                    if (email) {
+                        setCargandoHistorial(true)
+                        
+                        // 1. Obtenemos el usuario fresco desde PostgreSQL
+                        const usuarioFresquito = await userApi.getUserByEmail(email)
+                        setUsuarioActual(usuarioFresquito)
+                        localStorage.setItem('usuarioLogueado', JSON.stringify(usuarioFresquito))
+
+                        // 2. Traemos TODAS las boletas/documentos de MongoDB (al igual que en BoletasAdmind)
+                        const todasLasBoletas = await documentoApi.listarDocumentos()
+                        
+                        // 3. Filtramos solo aquellas boletas cuyos tickets pertenezcan al historial del usuario
+                        const ticketsUsuario = usuarioFresquito.historialCompras || []
+                        
+                        const boletasDelUsuario = todasLasBoletas.filter(doc => {
+                            const ticketDoc = doc.tikect || doc._id
+                            return ticketsUsuario.includes(ticketDoc)
+                        })
+
+                        setHistorialDetallado(boletasDelUsuario)
+                    }
+                }
+            } catch (e) {
+                console.error("Error al sincronizar el usuario o las boletas:", e)
+            } finally {
+                setCargandoHistorial(false)
+            }
+        }
+
+        cargarDatosUsuario()
+    }, [])
 
     const handleChange = (e) => {
         setFormData({
@@ -45,7 +91,9 @@ function Login({ onLogin }) {
                 setMensajeExito(true)
                 setErrors({})
                 
-                // Pasamos el objeto completo del usuario hacia App.jsx
+                localStorage.setItem('usuarioLogueado', JSON.stringify(usuarrio))
+                setUsuarioActual(usuarrio)
+
                 if (onLogin) {
                     onLogin(usuarrio)
                 }
@@ -68,6 +116,151 @@ function Login({ onLogin }) {
         }
     }
 
+    const handleCerrarSesion = () => {
+        localStorage.removeItem('usuarioLogueado')
+        setUsuarioActual(null)
+        setHistorialDetallado([])
+        if (onLogin) {
+            onLogin(null)
+        }
+        navigate('/Login')
+    }
+
+    // Formateador de moneda chilena
+    const formatear = (valor) => {
+        return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(valor || 0)
+    }
+
+    // SI YA HAY UN USUARIO LOGUEADO, MOSTRAMOS SU PANEL Y EL ACORDEÓN CON LAS BOLETAS REALES
+    if (usuarioActual) {
+        const listaTickets = usuarioActual.historialCompras || []
+
+        return (
+            <div className="container py-5">
+                <div className="row justify-content-center">
+                    <div className="col-12 col-md-10 col-lg-8">
+                        <div className="card shadow-lg border-secondary p-4" style={{ backgroundColor: '#fce4ec' }}>
+                            <div className="d-flex align-items-center mb-4 border-bottom pb-3 border-secondary-subtle">
+                                <div>
+                                    <h3 className="text-dark fw-bold mb-1">¡Hola, {usuarioActual.nombre || 'Usuario'}!</h3>
+                                    <p className="text-muted mb-0 small">Sesión activa: {usuarioActual.email || usuarioActual.correo}</p>
+                                </div>
+                                <button 
+                                    onClick={handleCerrarSesion}
+                                    className="btn btn-danger fw-bold ms-auto px-4 py-2"
+                                >
+                                    Cerrar Sesión
+                                </button>
+                            </div>
+
+                            <h5 className="fw-bold text-dark mb-3">🛍️ Tus Boletas e Historial de Compras</h5>
+                            
+                            {cargandoHistorial ? (
+                                <div className="text-center py-4">
+                                    <div className="spinner-border text-dark" role="status">
+                                        <span className="visually-hidden">Cargando historial...</span>
+                                    </div>
+                                    <p className="small text-muted mt-2">Buscando tus boletas en el sistema...</p>
+                                </div>
+                            ) : listaTickets.length > 0 ? (
+                                <div className="accordion shadow-sm" id="accordionHistorial">
+                                    {listaTickets.map((idTicket, index) => {
+                                        // Buscamos la coincidencia exacta dentro de las boletas traídas de MongoDB
+                                        const boletaMatcheada = historialDetallado.find(
+                                            b => (b.tikect && b.tikect === idTicket) || (b._id && b._id === idTicket)
+                                        )
+
+                                        const productos = boletaMatcheada?.productos || []
+                                        const totalCompra = boletaMatcheada?.total || 0
+
+                                        return (
+                                            <div className="accordion-item border-secondary mb-2" key={index}>
+                                                <h2 className="accordion-header" id={`heading-${index}`}>
+                                                    <button 
+                                                        className="accordion-button collapsed fw-bold text-dark" 
+                                                        type="button" 
+                                                        data-bs-toggle="collapse" 
+                                                        data-bs-target={`#collapse-${index}`} 
+                                                        aria-expanded="false" 
+                                                        aria-controls={`collapse-${index}`}
+                                                        style={{ backgroundColor: '#fff0f3' }}
+                                                    >
+                                                        <div className="d-flex justify-content-between w-100 pe-3 align-items-center">
+                                                            <span>🎫 Ticket N°: <span className="text-primary">{idTicket}</span></span>
+                                                            <span className="badge bg-dark text-white px-3 py-2">Total: {formatear(totalCompra)}</span>
+                                                        </div>
+                                                    </button>
+                                                </h2>
+                                                <div 
+                                                    id={`collapse-${index}`} 
+                                                    className="accordion-collapse collapse" 
+                                                    aria-labelledby={`heading-${index}`} 
+                                                    data-bs-parent="#accordionHistorial"
+                                                >
+                                                    <div className="accordion-body bg-white">
+                                                        <h6 className="fw-bold text-secondary mb-3">📦 Productos adquiridos:</h6>
+                                                        {productos.length > 0 ? (
+                                                            <div className="table-responsive">
+                                                                <table className="table table-sm table-bordered align-middle">
+                                                                    <thead className="table-light">
+                                                                        <tr>
+                                                                            <th>Producto</th>
+                                                                            <th>Categoría</th>
+                                                                            <th className="text-center">Cantidad</th>
+                                                                            <th className="text-end">Precio Unit.</th>
+                                                                            <th className="text-end">total</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {productos.map((prod, pIndex) => (
+                                                                            <tr key={pIndex}>
+                                                                                <td className="fw-semibold">{prod.nombre}</td>
+                                                                                <td><span className="badge bg-secondary">{prod.categoria}</span></td>
+                                                                                <td className="text-center">{prod.cantidad}</td>
+                                                                                <td className="text-end">{formatear(prod.precioU)}</td>
+                                                                                <td className="text-end fw-bold">{formatear(prod.cantidad * prod.precioU)}</td>
+                                                                            </tr>
+                                                                        ))}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="alert alert-warning small mb-0">
+                                                                No se encontró el detalle de productos para esta boleta.
+                                                            </div>
+                                                        )}
+                                                        <div className="d-flex justify-content-end mt-2">
+                                                            <span className="fw-bold text-dark">Monto Pagado Total: {formatear(totalCompra)}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="alert alert-info text-center mb-0">
+                                    Aún no tienes compras registradas en tu historial. ¡Anímate a explorar la tienda!
+                                </div>
+                            )}
+
+                            <div className="text-center mt-4">
+                                <button 
+                                    onClick={() => navigate('/')} 
+                                    className="btn text-white fw-bold px-4 py-2"
+                                    style={{ backgroundColor: '#5d4037' }}
+                                >
+                                    Ir a la Tienda
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    // SI NO ESTÁ LOGUEADO, MOSTRAMOS EL FORMULARIO NORMAL
     return (
         <div className="container py-5">
             <div className="row justify-content-center">

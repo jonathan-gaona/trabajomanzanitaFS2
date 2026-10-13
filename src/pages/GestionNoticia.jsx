@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { noticiaApi } from '../Data/ConexionBlog'
+import { useNavigate } from 'react-router-dom'
 
 function GestionNoticias() {
+  const navigate = useNavigate()
   const [noticias, setNoticias] = useState([])
   const [seleccionada, setSeleccionada] = useState(null)
   const [loading, setLoading] = useState(false)
 
-  // Estado de la tarjeta de la noticia
   const [tarjetaForm, setTarjetaForm] = useState({
     titulo: '',
     slug: '',
@@ -17,17 +18,14 @@ function GestionNoticias() {
     destacado: false
   })
 
-  // Estados para Drag & Drop y Vista Previa de la imagen de portada
   const [previewImagen, setPreviewImagen] = useState('')
   const [isDragging, setIsDragging] = useState(false)
 
-  // Estado del artículo (introducción y bloques/secciones)
   const [introduccion, setIntroduccion] = useState('')
   const [secciones, setSecciones] = useState([
     { tipo: 'parrafo', contenido: '', caption: '' }
   ])
 
-  // Cargar noticias al montar el componente
   const cargarNoticias = async () => {
     try {
       setLoading(true)
@@ -44,16 +42,15 @@ function GestionNoticias() {
     cargarNoticias()
   }, [])
 
-  // Auto-generar el slug automáticamente a partir del título
   const handleTituloChange = (e) => {
     const tituloVal = e.target.value
     const slugGenerado = tituloVal
       .toLowerCase()
       .trim()
       .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "") // Eliminar tildes
-      .replace(/[^a-z0-9 -]/g, '')     // Quitar caracteres especiales
-      .replace(/\s+/g, '-')            // Reemplazar espacios por guiones
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9 -]/g, '')
+      .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
 
     setTarjetaForm(prev => ({
@@ -63,7 +60,6 @@ function GestionNoticias() {
     }))
   }
 
-  // --- SUBIDA DE IMAGEN DE PORTADA ---
   const procesarArchivoPortada = async (file) => {
     if (!file || !file.type.startsWith('image/')) {
       alert('Por favor, selecciona o arrastra un archivo de imagen válido.')
@@ -97,7 +93,6 @@ function GestionNoticias() {
     }
   }
 
-  // --- SUBIDA DE IMAGEN PARA UNA SECCIÓN DINÁMICA ---
   const procesarArchivoSeccion = async (file, index) => {
     if (!file || !file.type.startsWith('image/')) {
       alert('Por favor, selecciona un archivo de imagen válido.')
@@ -130,7 +125,6 @@ function GestionNoticias() {
     }
   }
 
-  // Manejadores para agregar, editar y eliminar secciones dinámicas
   const handleAgregarSeccion = (tipo = 'parrafo') => {
     setSecciones(prev => [...prev, { tipo, contenido: '', caption: '' }])
   }
@@ -151,10 +145,8 @@ function GestionNoticias() {
     setSecciones(prev => prev.filter((_, i) => i !== index))
   }
 
-  // Seleccionar una noticia existente para modificar
   const handleSelectNoticia = (noticia) => {
     setSeleccionada(noticia)
-    
     const imgPortada = noticia.tarjeta?.imagenPortada || ''
 
     if (noticia.tarjeta) {
@@ -180,7 +172,6 @@ function GestionNoticias() {
     }
   }
 
-  // Limpiar formulario para crear una nueva noticia
   const handleLimpiarForm = () => {
     setSeleccionada(null)
     setTarjetaForm({
@@ -197,7 +188,6 @@ function GestionNoticias() {
     setSecciones([{ tipo: 'parrafo', contenido: '', caption: '' }])
   }
 
-  // Enviar formulario (Crear o Modificar usando PUT con slug)
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -216,7 +206,6 @@ function GestionNoticias() {
 
     try {
       if (seleccionada) {
-        // Obtenemos el slug de la noticia seleccionada para actualizar por PUT
         const slug = seleccionada.tarjeta?.slug || seleccionada.slug
         await noticiaApi.updateNoticia(slug, payloadDTO)
         alert('¡Noticia actualizada con éxito!')
@@ -233,7 +222,6 @@ function GestionNoticias() {
     }
   }
 
-  // Eliminar noticia
   const handleEliminar = async () => {
     if (!seleccionada) return
 
@@ -254,12 +242,20 @@ function GestionNoticias() {
 
   return (
     <div className="container py-4">
-      <h2 className="fw-bold mb-4" style={{ color: '#5d4037' }}>
-        Panel de Administración: Noticias & Blog
-      </h2>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="fw-bold mb-0" style={{ color: '#5d4037' }}>
+          Panel de Administración: Noticias & Blog
+        </h2>
+        <button
+          onClick={() => navigate('/admin')}
+          className="btn btn-outline-dark fw-bold shadow-sm"
+          style={{ backgroundColor: '#fff', borderColor: '#5d4037', color: '#5d4037' }}
+        >
+          🏠 Volver al Admin Home
+        </button>
+      </div>
 
       <div className="row g-4">
-        {/* COLUMNA IZQUIERDA: Listado de Noticias */}
         <div className="col-12 col-lg-5">
           <div className="card shadow-sm border-0">
             <div className="card-header text-white d-flex justify-content-between align-items-center" style={{ backgroundColor: '#5d4037' }}>
@@ -310,7 +306,6 @@ function GestionNoticias() {
           </div>
         </div>
 
-        {/* COLUMNA DERECHA: Formulario DTO de Creación/Edición */}
         <div className="col-12 col-lg-7">
           <div className="card shadow-sm border-0" style={{ backgroundColor: '#fce4ec' }}>
             <div className="card-header text-white fw-bold py-2 text-uppercase" style={{ backgroundColor: '#5d4037' }}>
@@ -358,9 +353,8 @@ function GestionNoticias() {
                   </div>
                 </div>
 
-                {/* Zona de Arrastre de Imagen de Portada */}
                 <div className="mb-3">
-                  <label className="form-label small fw-bold" style={{ color: '#5d4037' }}>Imagen de Portada (Arrastra o haz clic)</label>
+                  <label className="form-label small fw-bold" style={{ color: '#5d4037' }}>Imagen de Portada</label>
                   <div 
                     onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
                     onDragLeave={() => setIsDragging(false)}
@@ -429,7 +423,6 @@ function GestionNoticias() {
                   ></textarea>
                 </div>
 
-                {/* Secciones dinámicas */}
                 <div className="mb-3">
                   <div className="d-flex justify-content-between align-items-center mb-2">
                     <label className="form-label small fw-bold mb-0">Bloques de Contenido</label>
@@ -460,7 +453,6 @@ function GestionNoticias() {
                       </div>
 
                       {sec.tipo === 'imagen' ? (
-                        /* PAD DE CARGA PARA IMAGEN DE SECCIÓN */
                         <div className="mb-2">
                           <div 
                             className="border border-2 border-dashed rounded-2 p-2 text-center bg-light"
@@ -507,7 +499,6 @@ function GestionNoticias() {
                   ))}
                 </div>
 
-                {/* Botones de acción */}
                 <div className="d-grid gap-2 mt-4">
                   <button type="submit" className="btn text-white fw-bold py-2" style={{ backgroundColor: '#5d4037' }}>
                     {seleccionada ? 'Guardar Cambios' : 'Publicar Noticia'}

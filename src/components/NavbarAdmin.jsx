@@ -55,6 +55,14 @@ function NavbarAdmin({ onLogout }) {
                 Blog
               </Link>
             </li>
+            <li className="nav-item">
+              <Link 
+                to="/admin/boletas"
+                className={`nav-link fw-bold ${location.pathname === '/admin/boletas' ? 'text-dark text-decoration-underline' : 'text-secondary'}`}
+              >
+                Bletas
+              </Link>
+            </li>
             <li className="nav-item ms-lg-3 mt-2 mt-lg-0">
               {/* Botón convertido en acción para limpiar el estado de admin y redirigir al Index */}
               <button 

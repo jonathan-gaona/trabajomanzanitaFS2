@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom'
 import './index.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -24,6 +24,7 @@ import NavbarAdmin from './components/NavbarAdmin.jsx'
 import AdminHome from './pages/AdminHome'
 import AdminUser from './pages/AdminUser'    
 import GestionNoticia from './pages/GestionNoticia.jsx'
+import BoletasAdmind  from './pages/BoletasAdmind.jsx'
 
 function MainLayout({ carrito, agregarAlCarro, eliminarDelCarro, vaciarCarrito, usuario, setUsuario }) {
   const location = useLocation()
@@ -40,7 +41,9 @@ function MainLayout({ carrito, agregarAlCarro, eliminarDelCarro, vaciarCarrito, 
   }
 
   const handleLogout = () => {
+    // Limpiamos el estado y también el localStorage al cerrar sesión
     setUsuario(null)
+    localStorage.removeItem('usuarioLogueado')
     navigate('/')
   }
 
@@ -57,6 +60,7 @@ function MainLayout({ carrito, agregarAlCarro, eliminarDelCarro, vaciarCarrito, 
           <Route path="/admin/usuarios" element={isAdmin ? <AdminUser /> : <Navigate to="/Login" replace />} />
           <Route path="/admin/inventario" element={isAdmin ? <GestionInventario/> : <Navigate to="/Login" replace />} />
           <Route path="/admin/noticias" element={isAdmin? <GestionNoticia/>:<Navigate to= "/Login" replace/>}/>
+          <Route path="/admin/boletas" element={isAdmin? <BoletasAdmind/>:<Navigate to= "/Login" replace/>}/>
           {/* Rutas generales */}
           <Route path="/producto/:id" element={<DetalleProducto onAgregarAlCarro={agregarAlCarro} />} />
           <Route path="/" element={<Index onAgregarAlCarro={agregarAlCarro} />} />
@@ -65,7 +69,10 @@ function MainLayout({ carrito, agregarAlCarro, eliminarDelCarro, vaciarCarrito, 
           <Route path="/Carrito" element={<Carrito carrito={carrito} onEliminarDelCarro={eliminarDelCarro} usuarioLogueado={usuario} />} />
           <Route path="/resultado-pago" element={<ResultadoPago onVaciarCarrito={vaciarCarrito} usuarioLogueado={usuario} />} />
           <Route path="/Registro" element={<Registro />} />
-          <Route path="/Login" element={<Login onLogin={(datosUsuario) => setUsuario(datosUsuario)} />} />
+          <Route path="/Login" element={<Login onLogin={(datosUsuario) => {
+            setUsuario(datosUsuario)
+            localStorage.setItem('usuarioLogueado', JSON.stringify(datosUsuario))
+          }} />} />
           <Route path="/Blog" element={<Blog />} />
           <Route path="/Blog/:id" element={<ArticuloBlog />} />
           <Route path="/Contacto" element={<Contacto />} />
@@ -82,10 +89,19 @@ function MainLayout({ carrito, agregarAlCarro, eliminarDelCarro, vaciarCarrito, 
 
 function App() {
   const [carrito, setCarrito] = useState([])
-  const [usuario, setUsuario] = useState(null)
+  
+  // Inicializamos el estado del usuario leyendo directamente de localStorage para evitar que se pierda al recargar
+  const [usuario, setUsuario] = useState(() => {
+    try {
+      const guardado = localStorage.getItem('usuarioLogueado')
+      return guardado ? JSON.parse(guardado) : null
+    } catch (e) {
+      console.error("Error al leer localStorage:", e)
+      return null
+    }
+  })
 
   const agregarAlCarro = (producto, cantidad = 1) => {
-    // Identificador único robusto (cBarras, id o nombre)
     const idProducto = producto.cBarras || producto.Cbarras || producto.codigoBarras || producto.id || producto.nombre
 
     setCarrito((prevCarrito) => {

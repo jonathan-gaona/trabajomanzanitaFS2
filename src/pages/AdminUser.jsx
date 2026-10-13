@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { userApi } from '../Data/ConexionUser'
+import { useNavigate } from 'react-router-dom'
 
 function AdminUser() {
+  const navigate = useNavigate()
   const [usuarios, setUsuarios] = useState([])
   const [seleccionado, setSeleccionado] = useState(null)
 
@@ -60,7 +62,6 @@ function AdminUser() {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    // Validar que la contraseña tenga al menos 10 caracteres al crear o si se está modificando
     if (!seleccionado && formData.paswword.length < 10) {
       alert('La contraseña debe tener al menos 10 caracteres.')
       return
@@ -68,14 +69,12 @@ function AdminUser() {
 
     try {
       if (seleccionado) {
-        // Actualizar usuario en la BD
         await userApi.updateUser({
           ...formData,
           historialCompras: seleccionado.historialCompras || []
         })
         alert('¡Usuario modificado con éxito!')
       } else {
-        // Crear usuario en la BD enviando historialCompras vacío
         await userApi.createUser({
           ...formData,
           historialCompras: []
@@ -91,7 +90,6 @@ function AdminUser() {
     }
   }
 
-  // Función para eliminar usuario
   const handleEliminar = async () => {
     if (!seleccionado) return
 
@@ -112,12 +110,24 @@ function AdminUser() {
     }
   }
 
+  const cantidadBoletas = seleccionado && Array.isArray(seleccionado.historialCompras) 
+    ? seleccionado.historialCompras.length 
+    : 0
+
   return (
     <div className="w-100 pb-5 overflow-hidden">
-      <h2 className="mb-4 text-dark fw-bold text-uppercase">Gestión de Usuarios</h2>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="mb-0 text-dark fw-bold text-uppercase">Gestión de Usuarios</h2>
+        <button
+          onClick={() => navigate('/admin')}
+          className="btn btn-outline-dark fw-bold shadow-sm"
+          style={{ backgroundColor: '#fff', borderColor: '#5d4037', color: '#5d4037' }}
+        >
+          🏠 Volver al Admin Home
+        </button>
+      </div>
 
       <div className="row g-4">
-        
         {/* COLUMNA IZQUIERDA: Tabla de usuarios */}
         <div className="col-12 col-lg-7">
           <div className="card shadow-sm border-0">
@@ -174,13 +184,23 @@ function AdminUser() {
         {/* COLUMNA DERECHA: Formulario DTO */}
         <div className="col-12 col-lg-5">
           <div className="card shadow-sm border-0" style={{ backgroundColor: '#fce4ec' }}>
-            <div className="card-header text-white fw-bold py-2 text-uppercase" style={{ backgroundColor: '#5d4037' }}>
-              {seleccionado ? 'Modificar Usuario' : 'Nuevo Usuario'}
+            <div className="card-header text-white fw-bold py-2 text-uppercase d-flex justify-content-between align-items-center" style={{ backgroundColor: '#5d4037' }}>
+              <span>{seleccionado ? 'Modificar Usuario' : 'Nuevo Usuario'}</span>
+              {seleccionado && (
+                <span className="badge bg-light text-dark">
+                  Boletas: {cantidadBoletas}
+                </span>
+              )}
             </div>
             <div className="card-body">
               <form onSubmit={handleSubmit}>
                 
-                {/* Campo Nombre */}
+                {seleccionado && (
+                  <div className="alert alert-secondary py-2 small mb-3">
+                    📄 Este usuario tiene <strong>{cantidadBoletas}</strong> boleta(s) registrada(s) a su nombre en el historial.
+                  </div>
+                )}
+
                 <div className="mb-3">
                   <label className="form-label small fw-bold text-dark">Nombre</label>
                   <input 
@@ -194,7 +214,6 @@ function AdminUser() {
                   />
                 </div>
 
-                {/* Campo Apellido */}
                 <div className="mb-3">
                   <label className="form-label small fw-bold text-dark">Apellido</label>
                   <input 
@@ -207,7 +226,6 @@ function AdminUser() {
                   />
                 </div>
 
-                {/* Campo Rol */}
                 <div className="mb-3">
                   <label className="form-label small fw-bold text-dark">Rol del Usuario</label>
                   <select 
@@ -222,7 +240,6 @@ function AdminUser() {
                   </select>
                 </div>
 
-                {/* Campo Email */}
                 <div className="mb-3">
                   <label className="form-label small fw-bold text-dark">Correo Electrónico (email)</label>
                   <input 
@@ -237,7 +254,6 @@ function AdminUser() {
                   />
                 </div>
 
-                {/* Campo Password */}
                 <div className="mb-3">
                   <label className="form-label small fw-bold text-dark">Contraseña (Mínimo 10 caracteres)</label>
                   <input 
@@ -252,7 +268,6 @@ function AdminUser() {
                   />
                 </div>
 
-                {/* Acciones del formulario */}
                 <div className="d-grid gap-2 mt-4">
                   <button 
                     type="submit" 
@@ -262,7 +277,6 @@ function AdminUser() {
                     {seleccionado ? 'Modificar' : 'Agregar'}
                   </button>
 
-                  {/* Botón de Eliminar perfil */}
                   {seleccionado && (
                     <>
                       <button 
@@ -287,7 +301,6 @@ function AdminUser() {
             </div>
           </div>
         </div>
-
       </div>
     </div>
   )
