@@ -13,21 +13,23 @@ import Ventas from './pages/Productos.jsx'
 import Registro from './pages/Registro'
 import Login from './pages/Login'
 import Blog from './pages/Blog'
-import ArticuloBlog from './pages/ArticuloBlog.jsx' // NUEVO
+import ArticuloBlog from './pages/ArticuloBlog.jsx'
 import Contacto from './pages/Contacto'
 import Carrito from './pages/Carrito'
-import ResultadoPago from './pages/ResultadoPago.jsx' // NUEVO: pago exitoso / erróneo
+import ResultadoPago from './pages/ResultadoPago.jsx'
 import DetalleProducto from './pages/DetalleProducto.jsx'
 // Admin
 import GestionInventario from './pages/GestionInventario.jsx'
 import NavbarAdmin from './components/NavbarAdmin.jsx'
 import AdminHome from './pages/AdminHome'
 import AdminUser from './pages/AdminUser'    
+import GestionNoticia from './pages/GestionNoticia.jsx'
 
-function MainLayout({ carrito, agregarAlCarro, eliminarDelCarro, vaciarCarrito, isAdmin, setIsAdmin }) {
+function MainLayout({ carrito, agregarAlCarro, eliminarDelCarro, vaciarCarrito, usuario, setUsuario }) {
   const location = useLocation()
   const navigate = useNavigate()
   
+  const isAdmin = usuario?.rol === 'administrador'
   const esAdmin = isAdmin || location.pathname.startsWith('/admin')
 
   const estatusGeneral = {
@@ -38,13 +40,12 @@ function MainLayout({ carrito, agregarAlCarro, eliminarDelCarro, vaciarCarrito, 
   }
 
   const handleLogout = () => {
-    setIsAdmin(false)       // Quita los privilegios de administrador
-    navigate('/')           // Redirige inmediatamente al Index y actualiza la barra
+    setUsuario(null)        // Limpia la información del usuario
+    navigate('/')           // Redirige inmediatamente al Index
   }
 
   return (
     <div style={estatusGeneral}>
-      {/* d-print-none: el navbar no sale al imprimir la boleta */}
       <div className="d-print-none">
         {esAdmin ? <NavbarAdmin onLogout={handleLogout} /> : <Navbar carrito={carrito} />}
       </div>
@@ -55,18 +56,18 @@ function MainLayout({ carrito, agregarAlCarro, eliminarDelCarro, vaciarCarrito, 
           <Route path="/admin" element={isAdmin ? <AdminHome /> : <Navigate to="/Login" replace />} />
           <Route path="/admin/usuarios" element={isAdmin ? <AdminUser /> : <Navigate to="/Login" replace />} />
           <Route path="/admin/inventario" element={isAdmin ? <GestionInventario/> : <Navigate to="/Login" replace />} />
-
+          <Route path="/admin/noticias" element={isAdmin? <GestionNoticia/>:<Navigate to= "/Login" replace/>}/>
           {/* Rutas generales */}
           <Route path="/producto/:id" element={<DetalleProducto onAgregarAlCarro={agregarAlCarro} />} />
           <Route path="/" element={<Index onAgregarAlCarro={agregarAlCarro} />} />
           <Route path="/nosotros" element={<Nosotros />} />
           <Route path="/Ventas" element={<Ventas onAgregarAlCarro={agregarAlCarro} carrito={carrito} />} />
           <Route path="/Carrito" element={<Carrito carrito={carrito} onEliminarDelCarro={eliminarDelCarro} />} />
-          <Route path="/resultado-pago" element={<ResultadoPago onVaciarCarrito={vaciarCarrito} />} /> {/* NUEVO */}
+          <Route path="/resultado-pago" element={<ResultadoPago onVaciarCarrito={vaciarCarrito} />} />
           <Route path="/Registro" element={<Registro />} />
-          <Route path="/Login" element={<Login onLogin={(estado) => setIsAdmin(estado)} />} />
+          <Route path="/Login" element={<Login onLogin={(datosUsuario) => setUsuario(datosUsuario)} />} />
           <Route path="/Blog" element={<Blog />} />
-          <Route path="/Blog/:id" element={<ArticuloBlog />} /> {/* NUEVO */}
+          <Route path="/Blog/:id" element={<ArticuloBlog />} />
           <Route path="/Contacto" element={<Contacto />} />
           <Route path="*" element={<Index />} />
         </Routes>
@@ -81,7 +82,7 @@ function MainLayout({ carrito, agregarAlCarro, eliminarDelCarro, vaciarCarrito, 
 
 function App() {
   const [carrito, setCarrito] = useState([])
-  const [isAdmin, setIsAdmin] = useState(false)
+  const [usuario, setUsuario] = useState(null) // Guardará el objeto completo del usuario autenticado
 
   const agregarAlCarro = (producto, cantidad = 1) => {
     setCarrito((prevCarrito) => {
@@ -103,7 +104,6 @@ function App() {
     setCarrito((prev) => prev.filter((_, index) => index !== indexParaBorrar))
   }
 
-  // NUEVO: se llama cuando el pago fue exitoso
   const vaciarCarrito = () => setCarrito([])
 
   return (
@@ -112,8 +112,8 @@ function App() {
       agregarAlCarro={agregarAlCarro} 
       eliminarDelCarro={eliminarDelCarro}
       vaciarCarrito={vaciarCarrito}
-      isAdmin={isAdmin}
-      setIsAdmin={setIsAdmin}
+      usuario={usuario}
+      setUsuario={setUsuario}
     />
   )
 }

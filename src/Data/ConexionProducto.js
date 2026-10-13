@@ -1,5 +1,5 @@
 // URL base de tu API desplegada en Render
-const API_URL = 'http://localhost:3000/api'; 
+const API_URL = 'https://pruductos.onrender.com/api'; 
 
 /**
  * @typedef {Object} CreateProduct

@@ -47,6 +47,14 @@ function NavbarAdmin({ onLogout }) {
                 Inventario
               </Link>
             </li>
+            <li className="nav-item">
+              <Link 
+                to="/admin/noticias"
+                className={`nav-link fw-bold ${location.pathname === '/admin/noticias' ? 'text-dark text-decoration-underline' : 'text-secondary'}`}
+              >
+                Inventario
+              </Link>
+            </li>
             <li className="nav-item ms-lg-3 mt-2 mt-lg-0">
               {/* Botón convertido en acción para limpiar el estado de admin y redirigir al Index */}
               <button 

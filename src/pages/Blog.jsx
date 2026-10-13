@@ -1,8 +1,29 @@
+import { useState, useEffect } from 'react'
 import '../index.css'
 import CartasBlog from '../components/cartasBlog'
-import { posts } from '../Data/posts'
+import { noticiaApi } from '../Data/ConexionBlog'
 
 function Blog() {
+    const [noticias, setNoticias] = useState([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        const cargarPublicaciones = async () => {
+            try {
+                setLoading(true)
+                const datos = await noticiaApi.getNoticias()
+                setNoticias(datos || [])
+            } catch (error) {
+                console.error('Error al cargar las publicaciones del blog:', error)
+                setNoticias([])
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        cargarPublicaciones()
+    }, [])
+
     return (
         <div style={{
             backgroundImage: "url('/img/polkadots1.jpg')",
@@ -25,7 +46,15 @@ function Blog() {
                                 Explora nuestros últimos artículos, guías de coleccionismo y novedades del mundo otaku.
                             </p>
 
-                            <CartasBlog posts={posts} />
+                            {loading ? (
+                                <div className="text-center py-5">
+                                    <div className="spinner-border text-dark" role="status">
+                                        <span className="visually-hidden">Cargando publicaciones...</span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <CartasBlog posts={noticias} />
+                            )}
 
                         </div>
 

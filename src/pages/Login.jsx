@@ -2,8 +2,6 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { userApi } from '../Data/ConexionUser'
 
-
-
 function Login({ onLogin }) {
     const navigate = useNavigate()
     const [formData, setFormData] = useState({
@@ -38,23 +36,18 @@ function Login({ onLogin }) {
         }
 
         try {
-            // Llamamos a la API usando el método login. 
-            // Recuerda que tu backend recibe 'email' y 'paswword'
             const resultado = await userApi.login(formData.correo, formData.password)
-            const usuarrio= await userApi.getUserByEmail(formData.correo)
-            console.log(usuarrio)
-            // Si la API responde correctamente y valida el login:
+            const usuarrio = await userApi.getUserByEmail(formData.correo)
+            
             if (resultado) {
-                // Verificamos si es admin según el correo
-                const esAdmin = usuarrio.rol ==='administrador'
-                
-                
+                const esAdmin = usuarrio.rol === 'administrador'
 
                 setMensajeExito(true)
                 setErrors({})
                 
+                // Pasamos el objeto completo del usuario hacia App.jsx
                 if (onLogin) {
-                    onLogin(esAdmin)
+                    onLogin(usuarrio)
                 }
                 
                 setTimeout(() => {
@@ -69,7 +62,6 @@ function Login({ onLogin }) {
                 setMensajeExito(false)
             }
         } catch (error) {
-            // Si el backend lanza un error (credenciales malas, etc.)
             console.error("Error en el login:", error)
             setErrors({ correo: 'Correo o contraseña incorrectos, o el usuario no está registrado.' })
             setMensajeExito(false)
