@@ -6,7 +6,6 @@ function BoletasAdmind() {
   const navigate = useNavigate()
   const [documentos, setDocumentos] = useState([])
   const [loading, setLoading] = useState(true)
-  const [filtroTipo, setFiltroTipo] = useState('todos')
   const [documentoSeleccionado, setDocumentoSeleccionado] = useState(null)
 
   useEffect(() => {
@@ -26,11 +25,6 @@ function BoletasAdmind() {
     cargarDocumentos()
   }, [])
 
-  const documentosFiltrados = documentos.filter(doc => {
-    if (filtroTipo === 'todos') return true
-    return (doc.tipo || '').toLowerCase() === filtroTipo.toLowerCase()
-  })
-
   return (
     <div className="container py-5">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -39,36 +33,13 @@ function BoletasAdmind() {
           <p className="text-muted mb-0">Vista general de transacciones registradas en el sistema.</p>
         </div>
 
-        <div className="d-flex align-items-center gap-3">
-          <div className="btn-group">
-            <button 
-              className={`btn btn-outline-dark ${filtroTipo === 'todos' ? 'active' : ''}`} 
-              onClick={() => setFiltroTipo('todos')}
-            >
-              Todos
-            </button>
-            <button 
-              className={`btn btn-outline-dark ${filtroTipo === 'boleta' ? 'active' : ''}`} 
-              onClick={() => setFiltroTipo('boleta')}
-            >
-              Boletas
-            </button>
-            <button 
-              className={`btn btn-outline-dark ${filtroTipo === 'pedido' ? 'active' : ''}`} 
-              onClick={() => setFiltroTipo('pedido')}
-            >
-              Pedidos
-            </button>
-          </div>
-
-          <button
-            onClick={() => navigate('/admin')}
-            className="btn btn-outline-dark fw-bold shadow-sm"
-            style={{ backgroundColor: '#fff', borderColor: '#5d4037', color: '#5d4037' }}
-          >
-            🏠 Volver al Admin Home
-          </button>
-        </div>
+        <button
+          onClick={() => navigate('/admin')}
+          className="btn btn-outline-dark fw-bold shadow-sm"
+          style={{ backgroundColor: '#fff', borderColor: '#5d4037', color: '#5d4037' }}
+        >
+          🏠 Volver al Admin Home
+        </button>
       </div>
 
       <div className="row">
@@ -80,8 +51,8 @@ function BoletasAdmind() {
               <div className="text-center py-4">
                 <div className="spinner-border text-dark" role="status" />
               </div>
-            ) : documentosFiltrados.length === 0 ? (
-              <p className="text-muted text-center py-4">No hay documentos registrados para este filtro.</p>
+            ) : documentos.length === 0 ? (
+              <p className="text-muted text-center py-4">No hay documentos registrados en el sistema.</p>
             ) : (
               <div className="table-responsive">
                 <table className="table table-hover align-middle bg-white rounded overflow-hidden">
@@ -94,7 +65,7 @@ function BoletasAdmind() {
                     </tr>
                   </thead>
                   <tbody>
-                    {documentosFiltrados.map((doc, index) => {
+                    {documentos.map((doc, index) => {
                       const docId = doc._id || doc.tikect || index
                       return (
                         <tr 
