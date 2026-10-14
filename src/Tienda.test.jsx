@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -11,11 +11,20 @@ import BarraNavegacion from './components/barraNavegacion';
 import NavbarAdmin from './components/NavbarAdmin';
 import Login from './pages/Login';
 import Contacto from './pages/Contacto';
+import Registro from './pages/Registro';
+import Carrito from './pages/Carrito';
+import { userApi } from './Data/ConexionUser';
 
 // Envoltorio para componentes con navegación (React Router)
 const renderConRouter = (ui) => {
   return render(<MemoryRouter>{ui}</MemoryRouter>);
 };
+
+// Datos de prueba para el Carrito
+const productosCarrito = [
+  { id: 1, nombre: 'Zelda TOTK', precio: 10000, cantidad: 2, stock: 5 },
+  { id: 2, nombre: 'Mario Kart 8', precio: 5000, cantidad: 1, stock: 5 },
+];
 
 describe('--- SUITE DE 10 PRUEBAS UNITARIAS TIENDA ONLINE ---', () => {
 
@@ -121,6 +130,123 @@ describe('--- SUITE DE 10 PRUEBAS UNITARIAS TIENDA ONLINE ---', () => {
       fireEvent.click(botones[0]);
     }
     expect(true).toBe(true);
+  });
+
+  // ==========================================
+  // BLOQUE 6: PRUEBAS DE RENDERIZADO (2 Tests)
+  // ==========================================
+
+  it('Test 11 [Renderizado]: Registro debe mostrar el título y el botón Registrar', () => {
+    renderConRouter(<Registro />);
+    expect(screen.getByText('Registro de Usuario')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /registrar/i })).toBeInTheDocument();
+  });
+
+  it('Test 12 [Renderizado]: Carrito debe mostrar el título de la página', () => {
+    renderConRouter(<Carrito />);
+    expect(screen.getByText(/Carrito de compra y Pago/i)).toBeInTheDocument();
+  });
+
+  // ===============================================
+  // BLOQUE 7: PRUEBAS DE PROPIEDADES / PROPS (2 Tests)
+  // ===============================================
+
+  it('Test 13 [Props]: Carrito debe calcular y mostrar el total según los productos recibidos', () => {
+    renderConRouter(<Carrito carrito={productosCarrito} />);
+    // 10000*2 + 5000*1 = 25000
+    const total = screen.getByText(/Total a pagar/i);
+    expect(total.textContent).toMatch(/25[.,]?000/);
+  });
+
+  it('Test 14 [Props]: Carrito debe precargar los datos de usuarioLogueado en el formulario', () => {
+    renderConRouter(
+      <Carrito
+        carrito={productosCarrito}
+        usuarioLogueado={{ nombre: 'Ana', email: 'ana@duoc.cl' }}
+      />
+    );
+    expect(screen.getByLabelText('Nombre*').value).toBe('Ana');
+    expect(screen.getByLabelText('Correo*').value).toBe('ana@duoc.cl');
+  });
+
+  // ====================================================
+  // BLOQUE 8: PRUEBAS DE RENDERIZADO CONDICIONAL (2 Tests)
+  // ====================================================
+
+  it('Test 15 [Render Condicional]: Carrito vacío debe mostrar mensaje y ocultar el botón de pago', () => {
+    renderConRouter(<Carrito carrito={[]} />);
+    expect(screen.getByText('Tu carrito está vacío.')).toBeInTheDocument();
+    expect(screen.queryByText(/Pagar ahora/i)).toBeNull();
+  });
+
+  it('Test 16 [Render Condicional]: Carrito con productos debe mostrar el formulario de pago', () => {
+    renderConRouter(<Carrito carrito={productosCarrito} />);
+    expect(screen.getByRole('button', { name: /Pagar ahora/i })).toBeInTheDocument();
+    expect(screen.queryByText(/Tu carrito está vacío/i)).toBeNull();
+  });
+
+  // ==============================================
+  // BLOQUE 9: PRUEBAS DE MANEJO DE ESTADO (2 Tests)
+  // ==============================================
+
+  it('Test 17 [Estado]: Registro debe actualizar el estado de nombre y correo al escribir', () => {
+    renderConRouter(<Registro />);
+    const inputNombre = screen.getByPlaceholderText(/Ingresa tu nombre/i);
+    const inputCorreo = screen.getByPlaceholderText(/usuario@duoc.cl o @gmail.com/i);
+
+    fireEvent.change(inputNombre, { target: { value: 'Maria Soto' } });
+    fireEvent.change(inputCorreo, { target: { value: 'maria@duoc.cl' } });
+
+    expect(inputNombre.value).toBe('Maria Soto');
+    expect(inputCorreo.value).toBe('maria@duoc.cl');
+  });
+
+  it('Test 18 [Estado]: Carrito debe actualizar la comuna al cambiar la región', () => {
+    renderConRouter(<Carrito carrito={productosCarrito} />);
+    const selectRegion = screen.getByLabelText('Región*');
+    const selectComuna = screen.getByLabelText('Comuna*');
+
+    expect(selectComuna.value).toBe('Cerrillos');
+    fireEvent.change(selectRegion, { target: { value: 'Región de Valparaíso' } });
+    expect(selectComuna.value).toBe('Valparaíso');
+  });
+
+  // ===================================================
+  // BLOQUE 10: PRUEBAS DE EVENTOS E INTERACCIÓN (2 Tests)
+  // ===================================================
+
+  it('Test 19 [Eventos]: Registro debe mostrar errores al enviar el formulario vacío', async () => {
+    renderConRouter(<Registro />);
+    fireEvent.click(screen.getByRole('button', { name: /registrar/i }));
+
+    expect(await screen.findByText('El nombre es requerido.')).toBeInTheDocument();
+    expect(screen.getByText('El correo es requerido.')).toBeInTheDocument();
+    expect(screen.getByText('La contraseña es requerida.')).toBeInTheDocument();
+  });
+
+  it('Test 20 [Eventos]: Registro con datos válidos debe llamar a la API y mostrar éxito', async () => {
+    const spyCrear = vi.spyOn(userApi, 'createUser').mockResolvedValue({ id: 1 });
+    renderConRouter(<Registro />);
+
+    fireEvent.change(screen.getByPlaceholderText(/Ingresa tu nombre/i), { target: { value: 'Maria Soto' } });
+    fireEvent.change(screen.getByPlaceholderText(/usuario@duoc.cl o @gmail.com/i), { target: { value: 'maria@duoc.cl' } });
+    fireEvent.change(screen.getByPlaceholderText(/Repite tu correo/i), { target: { value: 'maria@duoc.cl' } });
+    fireEvent.change(screen.getByPlaceholderText('********'), { target: { value: '1234' } });
+    fireEvent.change(screen.getByPlaceholderText(/Repite tu contraseña/i), { target: { value: '1234' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /registrar/i }));
+
+    await waitFor(() => {
+      expect(spyCrear).toHaveBeenCalledWith({
+        nombre: 'Maria Soto',
+        email: 'maria@duoc.cl',
+        paswword: '1234',
+        rol: 'cliente',
+      });
+    });
+    expect(await screen.findByText(/Registro exitoso/i)).toBeInTheDocument();
+
+    spyCrear.mockRestore();
   });
 
 });
